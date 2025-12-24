@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
@@ -9,10 +9,26 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { Minus, Dna,  Plus, Trash2, FolderPlus, Info, Send, FileJson, Upload, Copy, Check, Download, Eye, EyeOff } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Minus,
+  Dna,
+  Plus,
+  Trash2,
+  FolderPlus,
+  Info,
+  Send,
+  Upload,
+  Copy,
+  Check,
+  Download,
+  Eye,
+  EyeOff,
+  Pencil,
+} from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { ConfirmDialog } from './ConfirmDialog'
+import { ConfirmDialog } from "./ConfirmDialog"
 
 type FieldType = "string" | "number" | "boolean" | "array" | "json"
 
@@ -31,7 +47,9 @@ interface FormSection {
   subsections: FormSection[]
 }
 
-type CommentsMap = Record<string, string>
+type NestedComments = {
+  [key: string]: string | NestedComments
+}
 
 interface FieldTypeColor {
   string: string
@@ -49,6 +67,9 @@ const fieldTypeTextClass: FieldTypeColor = {
   json: "text-violet-800",
 }
 
+const STORAGE_KEY_CONFIG = "dynamic-form-config"
+const STORAGE_KEY_COMMENTS = "dynamic-form-comments"
+
 function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
   if (typeof value === "number") return "number"
@@ -60,33 +81,64 @@ function getFieldType(value: unknown): FieldType {
   return "string"
 }
 
+function getNestedComment(comments: NestedComments, path: string[]): string | undefined {
+  let current: NestedComments | string | undefined = comments
+  for (const key of path) {
+    if (current === undefined || typeof current === "string") return undefined
+    current = current[key]
+  }
+  return typeof current === "string" ? current : undefined
+}
+
+function setNestedComment(comments: NestedComments, path: string[], value: string): NestedComments {
+  if (path.length === 0) return comments
+
+  const result = { ...comments }
+  const [first, ...rest] = path
+
+  if (rest.length === 0) {
+    if (value.trim()) {
+      result[first] = value
+    } else {
+      delete result[first]
+    }
+  } else {
+    const nested = result[first] && typeof result[first] === "object" ? (result[first] as NestedComments) : {}
+    result[first] = setNestedComment(nested, rest, value)
+  }
+
+  return result
+}
+
 function parseConfigToSections(
   config: Record<string, unknown>,
-  comments: CommentsMap,
-  parentPath = "",
+  comments: NestedComments,
+  parentPath: string[] = [],
 ): { generalFields: FormField[]; sections: FormSection[] } {
   const generalFields: FormField[] = []
   const sections: FormSection[] = []
 
   Object.entries(config).forEach(([key, value]) => {
-    const currentPath = parentPath ? `${parentPath}.${key}` : key
+    const currentPath = [...parentPath, key]
 
     if (value !== null && typeof value === "object" && !Array.isArray(value)) {
-      const nested = parseConfigToSections(value as Record<string, unknown>, comments, currentPath)
+      const nestedComments = comments[key] && typeof comments[key] === "object" ? (comments[key] as NestedComments) : {}
+      const nested = parseConfigToSections(value as Record<string, unknown>, nestedComments, currentPath)
       const section: FormSection = {
-        id: `section-${currentPath.replace(/\./g, "-")}`,
+        id: `section-${currentPath.join("-")}`,
         name: key,
         fields: nested.generalFields,
         subsections: nested.sections,
       }
       sections.push(section)
     } else {
+      const comment = typeof comments[key] === "string" ? (comments[key] as string) : undefined
       const field: FormField = {
-        id: `field-${currentPath.replace(/\./g, "-")}`,
+        id: `field-${currentPath.join("-")}`,
         name: key,
         type: getFieldType(value),
         value: value as string | number | boolean | number[] | object,
-        comment: comments[currentPath],
+        comment,
       }
       generalFields.push(field)
     }
@@ -113,6 +165,36 @@ function sectionsToConfig(sections: FormSection[]): Record<string, unknown> {
         Object.assign(sectionData, nestedData)
       }
       result[section.name] = sectionData
+    }
+  })
+
+  return result
+}
+
+function sectionsToComments(sections: FormSection[]): NestedComments {
+  const result: NestedComments = {}
+
+  sections.forEach((section) => {
+    if (section.name === "General") {
+      section.fields.forEach((field) => {
+        if (field.comment?.trim()) {
+          result[field.name] = field.comment
+        }
+      })
+    } else {
+      const sectionComments: NestedComments = {}
+      section.fields.forEach((field) => {
+        if (field.comment?.trim()) {
+          sectionComments[field.name] = field.comment
+        }
+      })
+      if (section.subsections.length > 0) {
+        const nestedComments = sectionsToComments(section.subsections)
+        Object.assign(sectionComments, nestedComments)
+      }
+      if (Object.keys(sectionComments).length > 0) {
+        result[section.name] = sectionComments
+      }
     }
   })
 
@@ -175,26 +257,92 @@ const exampleConfig: Record<string, unknown> = {
   },
 }
 
-const exampleComments: CommentsMap = {
+const exampleComments: NestedComments = {
   CONFIG_KEY1: "Primary configuration string",
   CONFIG_KEY2: "Enable or disable feature flag",
-  "CONFIG_key3.CHILD_1": "Numeric threshold value",
-  "CONFIG_key3.CHILD_2": "Array of priority levels",
-  "Header.Type": "Document type (Invoice, Quote, etc.)",
-  "Header.Number": "Unique document number",
-  "Company.Name": "Legal company name",
-  "Company.Contact.Email": "Primary contact email address",
+  CONFIG_key3: {
+    CHILD_1: "Numeric threshold value",
+    CHILD_2: "Array of priority levels",
+  },
+  Header: {
+    Type: "Document type (Invoice, Quote, etc.)",
+    Number: "Unique document number",
+  },
+  Company: {
+    Name: "Legal company name",
+    Contact: {
+      Email: "Primary contact email address",
+    },
+  },
 }
 
 const formatName = (str: string) => {
   if (str.length < 4) return str
 
   return str
-    .replaceAll('-', '_')
-    .split('_')
-    .map(part => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(' ')
+    .replaceAll("-", "_")
+    .split("_")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ")
     .trim()
+}
+
+function EditCommentPopover({
+  comment,
+  onSave,
+  fieldName,
+}: {
+  comment?: string
+  onSave: (comment: string) => void
+  fieldName: string
+}) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState(comment || "")
+
+  useEffect(() => {
+    setValue(comment || "")
+  }, [comment])
+
+  const handleSave = () => {
+    onSave(value)
+    setOpen(false)
+  }
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-5 w-5 text-muted-foreground hover:text-primary transition-colors"
+        >
+          {comment ? <Info className="h-3.5 w-3.5" /> : <Pencil className="h-3 w-3 opacity-50" />}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 bg-background" align="start">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <Label className="text-sm font-medium">Comment for {formatName(fieldName)}</Label>
+            <p className="text-xs text-muted-foreground">Add a description or help text for this field</p>
+          </div>
+          <Textarea
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            placeholder="Enter field description..."
+            className="min-h-[80px] text-sm"
+          />
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave}>
+              Save
+            </Button>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
+  )
 }
 
 function FormSectionComponent({
@@ -202,13 +350,11 @@ function FormSectionComponent({
   onUpdate,
   depth = 0,
   parentPath = "",
-  commentsMap = {},
 }: {
   sections: FormSection[]
   onUpdate: (sections: FormSection[]) => void
   depth?: number
   parentPath?: string
-  commentsMap?: CommentsMap
 }) {
   const [expandedSections, setExpandedSections] = useState<string[]>(sections.map((s) => s.id))
 
@@ -232,6 +378,21 @@ function FormSectionComponent({
           ? {
               ...section,
               fields: section.fields.map((field) => (field.id === fieldId ? { ...field, value } : field)),
+            }
+          : section,
+      ),
+    )
+  }
+
+  const updateFieldComment = (sectionId: string, fieldId: string, comment: string) => {
+    onUpdate(
+      sections.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              fields: section.fields.map((field) =>
+                field.id === fieldId ? { ...field, comment: comment || undefined } : field,
+              ),
             }
           : section,
       ),
@@ -300,12 +461,6 @@ function FormSectionComponent({
     onUpdate(sections.filter((section) => section.id !== sectionId))
   }
 
-  const getFieldPath = (sectionName: string, fieldName: string): string => {
-    if (sectionName === "General") return fieldName
-    const basePath = parentPath ? `${parentPath}.${sectionName}` : sectionName
-    return `${basePath}.${fieldName}`
-  }
-
   return (
     <TooltipProvider>
       <ConfirmDialog
@@ -323,11 +478,7 @@ function FormSectionComponent({
           const isExpanded = expandedSections.includes(section.id)
 
           return (
-            <Collapsible
-              key={section.id}
-              open={isExpanded}
-              onOpenChange={() => toggleSection(section.id)}
-            >
+            <Collapsible key={section.id} open={isExpanded} onOpenChange={() => toggleSection(section.id)}>
               <div
                 className="bg-gradient-to-br from-card to-card/50 rounded-xl hover:shadow-md transition-all duration-200"
                 style={{ marginLeft: depth > 0 ? `${depth * 20}px` : 0 }}
@@ -335,20 +486,14 @@ function FormSectionComponent({
                 <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-t-xl group">
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded-full bg-primary/75 group-hover:bg-primary transition-colors">
-                      {isExpanded && <Plus
-                        className={`h-4 w-4 text-secondary transition-transform duration-200`}
-                      />}
-                      {!isExpanded && <Minus
-                        className={`h-4 w-4 text-secondary transition-transform duration-200`}
-                      />}
+                      {isExpanded && <Plus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
+                      {!isExpanded && <Minus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
                     </div>
-                    <h2 className="text-base font-semibold text-foreground">
-                      {formatName(section.name)}
-                    </h2>
+                    <h2 className="text-base font-semibold text-foreground">{formatName(section.name)}</h2>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
-                      {section.fields.length} {section.fields.length === 1 ? 'field' : 'fields'}
+                      {section.fields.length} {section.fields.length === 1 ? "field" : "fields"}
                     </span>
                     {depth > 0 && (
                       <Button
@@ -358,10 +503,10 @@ function FormSectionComponent({
                         onClick={(e) => {
                           e.stopPropagation()
                           setConfirmState({
-                              open: true,
-                              title: "Delete section?",
-                              description: "This section and all nested fields will be removed.",
-                              action: () => removeSection(section.id),
+                            open: true,
+                            title: "Delete section?",
+                            description: "This section and all nested fields will be removed.",
+                            action: () => removeSection(section.id),
                           })
                         }}
                       >
@@ -376,9 +521,6 @@ function FormSectionComponent({
                     {section.fields.length > 0 && (
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                         {section.fields.map((field) => {
-                          const fieldPath = getFieldPath(section.name, field.name)
-                          const comment = field.comment || commentsMap[fieldPath]
-
                           return (
                             <div key={field.id} className="space-y-2 group/field">
                               <div className="flex items-center justify-between">
@@ -388,21 +530,28 @@ function FormSectionComponent({
                                   </Label>
                                   <span
                                     className={`text-xs px-1.5 py-0.5 rounded bg-muted/60 font-mono font-semibold ${
-                                      fieldTypeTextClass[field.type?.toLowerCase()] ?? "text-red-800"
+                                      fieldTypeTextClass[field.type?.toLowerCase() as keyof FieldTypeColor] ??
+                                      "text-red-800"
                                     }`}
                                   >
                                     {field.type}
                                   </span>
-                                  {comment && (
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Info className="h-3.5 w-3.5 text-muted-foreground hover:text-primary cursor-help transition-colors" />
-                                      </TooltipTrigger>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span>
+                                        <EditCommentPopover
+                                          comment={field.comment}
+                                          fieldName={field.name}
+                                          onSave={(comment) => updateFieldComment(section.id, field.id, comment)}
+                                        />
+                                      </span>
+                                    </TooltipTrigger>
+                                    {field.comment && (
                                       <TooltipContent className="max-w-xs">
-                                        <p className="text-sm">{comment}</p>
+                                        <p className="text-sm">{field.comment}</p>
                                       </TooltipContent>
-                                    </Tooltip>
-                                  )}
+                                    )}
+                                  </Tooltip>
                                 </div>
                                 <Button
                                   variant="ghost"
@@ -410,10 +559,10 @@ function FormSectionComponent({
                                   className="h-7 w-7 opacity-0 group-hover/field:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
                                   onClick={() =>
                                     setConfirmState({
-                                        open: true,
-                                        title: `Delete field "${field.name}"?`,
-                                        description: "This section and all nested fields will be removed.",
-                                        action: () => removeField(section.id, field.id),
+                                      open: true,
+                                      title: `Delete field "${field.name}"?`,
+                                      description: "This section and all nested fields will be removed.",
+                                      action: () => removeField(section.id, field.id),
                                     })
                                   }
                                 >
@@ -427,7 +576,9 @@ function FormSectionComponent({
                                     checked={Boolean(field.value)}
                                     onCheckedChange={(checked) => updateField(section.id, field.id, checked)}
                                   />
-                                  <span className="ml-3 text-sm font-medium">{field.value ? "Enabled" : "Disabled"}</span>
+                                  <span className="ml-3 text-sm font-medium">
+                                    {field.value ? "Enabled" : "Disabled"}
+                                  </span>
                                 </div>
                               ) : field.type === "array" ? (
                                 <Input
@@ -493,14 +644,13 @@ function FormSectionComponent({
                           onUpdate={(updated) => updateSubsections(section.id, updated)}
                           depth={depth + 1}
                           parentPath={sectionPath}
-                          commentsMap={commentsMap}
                         />
                       </div>
                     )}
                   </div>
                 </CollapsibleContent>
 
-                <Separator className="h-20"/>
+                <Separator className="h-20" />
               </div>
             </Collapsible>
           )
@@ -517,6 +667,7 @@ function AddFieldDialog({ onAdd }: { onAdd: (field: Omit<FormField, "id">) => vo
   const [name, setName] = useState("")
   const [type, setType] = useState<FieldType>("string")
   const [value, setValue] = useState("")
+  const [comment, setComment] = useState("")
 
   const handleAdd = () => {
     if (!name.trim()) return
@@ -545,17 +696,22 @@ function AddFieldDialog({ onAdd }: { onAdd: (field: Omit<FormField, "id">) => vo
         break
     }
 
-    onAdd({ name, type, value: parsedValue })
+    onAdd({ name, type, value: parsedValue, comment: comment || undefined })
     setName("")
     setType("string")
     setValue("")
+    setComment("")
     setOpen(false)
   }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all">
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
+        >
           <Plus className="h-4 w-4 mr-1.5" />
           Add Field
         </Button>
@@ -624,10 +780,24 @@ function AddFieldDialog({ onAdd }: { onAdd: (field: Omit<FormField, "id">) => vo
               />
             )}
           </div>
+          <div className="grid gap-2">
+            <Label htmlFor="fieldComment">Comment (optional)</Label>
+            <Input
+              id="fieldComment"
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Description or help text for this field"
+              className="border-muted-foreground/20 focus:border-primary"
+            />
+          </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAdd} disabled={!name.trim()}>Add Field</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={!name.trim()}>
+            Add Field
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -648,7 +818,11 @@ function AddSubsectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all">
+        <Button
+          variant="outline"
+          size="sm"
+          className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
+        >
           <FolderPlus className="h-4 w-4 mr-1.5" />
           Add Subsection
         </Button>
@@ -674,8 +848,12 @@ function AddSubsectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAdd} disabled={!name.trim()}>Add Section</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={!name.trim()}>
+            Add Section
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -696,7 +874,10 @@ function AddSectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full border-dashed border-2 hover:bg-primary/5 hover:border-primary/50 transition-all group">
+        <Button
+          variant="outline"
+          className="w-full border-dashed border-2 hover:bg-primary/5 hover:border-primary/50 transition-all group bg-transparent"
+        >
           <Plus className="h-4 w-4 mr-2 group-hover:scale-110 transition-transform" />
           Add New Section
         </Button>
@@ -722,8 +903,12 @@ function AddSectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleAdd} disabled={!name.trim()}>Add Section</Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={!name.trim()}>
+            Add Section
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
@@ -732,20 +917,38 @@ function AddSectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
 
 export function DynamicFormBuilder() {
   const [sections, setSections] = useState<FormSection[]>([])
-  const [commentsMap, setCommentsMap] = useState<CommentsMap>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [configInput, setConfigInput] = useState("")
   const [commentsInput, setCommentsInput] = useState("")
   const [copied, setCopied] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
 
   useEffect(() => {
-    const config = exampleConfig
-    const commentData = exampleComments
-    setCommentsMap(commentData)
+    const savedConfig = localStorage.getItem(STORAGE_KEY_CONFIG)
+    const savedComments = localStorage.getItem(STORAGE_KEY_COMMENTS)
 
-    const { generalFields, sections: parsedSections } = parseConfigToSections(config, commentData)
+    let config = exampleConfig
+    let comments = exampleComments
+
+    if (savedConfig) {
+      try {
+        config = JSON.parse(savedConfig)
+      } catch (e) {
+        console.error("Failed to parse saved config", e)
+      }
+    }
+
+    if (savedComments) {
+      try {
+        comments = JSON.parse(savedComments)
+      } catch (e) {
+        console.error("Failed to parse saved comments", e)
+      }
+    }
+
+    const { generalFields, sections: parsedSections } = parseConfigToSections(config, comments)
 
     const allSections: FormSection[] = []
     if (generalFields.length > 0) {
@@ -759,18 +962,28 @@ export function DynamicFormBuilder() {
     allSections.push(...parsedSections)
 
     setSections(allSections)
+    setIsLoaded(true)
   }, [])
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    const config = sectionsToConfig(sections)
+    const comments = sectionsToComments(sections)
+
+    localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config))
+    localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(comments))
+  }, [sections, isLoaded])
 
   const handleImport = () => {
     try {
       const config = JSON.parse(configInput || "{}")
-      let commentData: CommentsMap = {}
+      let commentData: NestedComments = {}
 
       if (commentsInput.trim()) {
         commentData = JSON.parse(commentsInput)
       }
 
-      setCommentsMap(commentData)
       const { generalFields, sections: parsedSections } = parseConfigToSections(config, commentData)
 
       const allSections: FormSection[] = []
@@ -795,6 +1008,10 @@ export function DynamicFormBuilder() {
 
   const buildJson = (): Record<string, unknown> => {
     return sectionsToConfig(sections)
+  }
+
+  const buildCommentsJson = (): NestedComments => {
+    return sectionsToComments(sections)
   }
 
   const handleSubmit = async () => {
@@ -831,15 +1048,46 @@ export function DynamicFormBuilder() {
 
   const downloadJson = () => {
     const jsonData = JSON.stringify(buildJson(), null, 2)
-    const blob = new Blob([jsonData], { type: 'application/json' })
+    const blob = new Blob([jsonData], { type: "application/json" })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
+    const a = document.createElement("a")
     a.href = url
-    a.download = 'config.json'
+    a.download = "config.json"
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
+  }
+
+  const downloadCommentsJson = () => {
+    const jsonData = JSON.stringify(buildCommentsJson(), null, 2)
+    const blob = new Blob([jsonData], { type: "application/json" })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "comments.json"
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const clearStorage = () => {
+    localStorage.removeItem(STORAGE_KEY_CONFIG)
+    localStorage.removeItem(STORAGE_KEY_COMMENTS)
+
+    const { generalFields, sections: parsedSections } = parseConfigToSections(exampleConfig, exampleComments)
+    const allSections: FormSection[] = []
+    if (generalFields.length > 0) {
+      allSections.push({
+        id: "general",
+        name: "General",
+        fields: generalFields,
+        subsections: [],
+      })
+    }
+    allSections.push(...parsedSections)
+    setSections(allSections)
   }
 
   return (
@@ -860,9 +1108,12 @@ export function DynamicFormBuilder() {
           <div className="flex flex-wrap gap-2">
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all">
+                <Button
+                  variant="outline"
+                  className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
+                >
                   <Upload className="h-4 w-4 mr-2" />
-                  Import JSON
+                  Import
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
@@ -884,12 +1135,12 @@ export function DynamicFormBuilder() {
                     />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="commentsJson">Comments JSON (optional)</Label>
+                    <Label htmlFor="commentsJson">Comments JSON (optional - same structure as config)</Label>
                     <Textarea
                       id="commentsJson"
                       value={commentsInput}
                       onChange={(e) => setCommentsInput(e.target.value)}
-                      placeholder='{"CONFIG_KEY1": "Description for KEY1", "CONFIG_key3.CHILD_1": "Description"}'
+                      placeholder='{"CONFIG_KEY1": "Description", "CONFIG_key3": {"CHILD_1": "Description"}}'
                       className="font-mono text-sm max-h-[100px] border-muted-foreground/20 focus:border-primary"
                     />
                   </div>
@@ -903,6 +1154,15 @@ export function DynamicFormBuilder() {
               </DialogContent>
             </Dialog>
 
+            <Button
+              variant="outline"
+              onClick={clearStorage}
+              className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all bg-transparent"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+
             <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
               <Send className="h-4 w-4 mr-2" />
               {isSubmitting ? "Uploading..." : "Submit"}
@@ -911,47 +1171,39 @@ export function DynamicFormBuilder() {
         </div>
 
         <div className="space-y-4">
-          <FormSectionComponent sections={sections} onUpdate={setSections} commentsMap={commentsMap} />
+          <FormSectionComponent sections={sections} onUpdate={setSections} />
         </div>
 
         <div className="mt-8 bg-gradient-to-br from-card to-card/50 rounded-xl border shadow-sm">
           <div className="p-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
-              {/*<FileJson className="h-5 w-5 text-primary" />*/}
-              <h3 className="text-base font-semibold tracking-tight">Raw Configuration Preview</h3>
+              <h3 className="text-base font-semibold tracking-tight">Preview</h3>
             </div>
             <div className="flex gap-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowPreview(!showPreview)}
-                className="hover:bg-muted"
-              >
+              <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="hover:bg-muted">
                 {showPreview ? <EyeOff className="h-4 w-4 mr-1.5" /> : <Eye className="h-4 w-4 mr-1.5" />}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={copyToClipboard}
-                className="hover:bg-muted"
-              >
+              <Button variant="ghost" size="sm" onClick={copyToClipboard} className="hover:bg-muted">
                 {copied ? <Check className="h-4 w-4 mr-1.5 text-green-500" /> : <Copy className="h-4 w-4 mr-1.5" />}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={downloadJson}
-                className="hover:bg-muted"
-              >
+              <Button variant="ghost" size="sm" onClick={downloadJson} className="hover:bg-muted">
                 <Download className="h-4 w-4 mr-1.5" />
+                Config
+              </Button>
+              <Button variant="ghost" size="sm" onClick={downloadCommentsJson} className="hover:bg-muted">
+                <Download className="h-4 w-4 mr-1.5" />
+                Comments
               </Button>
             </div>
           </div>
           {showPreview && (
-            <div className="p-4">
-              <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-96 font-mono">
-                {JSON.stringify(buildJson(), null, 2)}
-              </pre>
+            <div className="p-4 space-y-4">
+              <div>
+                <Label className="text-xs text-muted-foreground mb-2 block">config.json</Label>
+                <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                  {JSON.stringify(buildJson(), null, 2)}
+                </pre>
+              </div>
             </div>
           )}
         </div>
