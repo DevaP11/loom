@@ -9,8 +9,9 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { ChevronDown, Plus, Trash2, FolderPlus, Info, Send, FileJson, Upload, Copy, Check, Download, Eye, EyeOff } from "lucide-react"
+import { Minus, Dna,  Plus, Trash2, FolderPlus, Info, Send, FileJson, Upload, Copy, Check, Download, Eye, EyeOff } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
 
 type FieldType = "string" | "number" | "boolean" | "array" | "json"
 
@@ -30,6 +31,22 @@ interface FormSection {
 }
 
 type CommentsMap = Record<string, string>
+
+interface FieldTypeColor {
+  string: string
+  number: string
+  boolean: string
+  array: string
+  json: string
+}
+
+const fieldTypeTextClass: FieldTypeColor = {
+  string: "text-red-800",
+  number: "text-yellow-800",
+  boolean: "text-indigo-800",
+  array: "text-green-800",
+  json: "text-violet-800",
+}
 
 function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
@@ -295,17 +312,18 @@ function FormSectionComponent({
               onOpenChange={() => toggleSection(section.id)}
             >
               <div
-                className="bg-gradient-to-br from-card to-card/50 rounded-xl border shadow-sm hover:shadow-md transition-all duration-200"
+                className="bg-gradient-to-br from-card to-card/50 rounded-xl hover:shadow-md transition-all duration-200"
                 style={{ marginLeft: depth > 0 ? `${depth * 20}px` : 0 }}
               >
                 <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-t-xl group">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                      <ChevronDown
-                        className={`h-4 w-4 text-primary transition-transform duration-200 ${
-                          isExpanded ? "rotate-180" : ""
-                        }`}
-                      />
+                    <div className="p-1.5 rounded-full bg-primary/75 group-hover:bg-primary transition-colors">
+                      {isExpanded && <Plus
+                        className={`h-4 w-4 text-secondary transition-transform duration-200`}
+                      />}
+                      {!isExpanded && <Minus
+                        className={`h-4 w-4 text-secondary transition-transform duration-200`}
+                      />}
                     </div>
                     <h2 className="text-base font-semibold text-foreground">
                       {formatName(section.name)}
@@ -348,7 +366,11 @@ function FormSectionComponent({
                                   <Label htmlFor={field.id} className="text-sm font-medium text-foreground">
                                     {formatName(field.name)}
                                   </Label>
-                                  <span className="text-xs px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-mono">
+                                  <span
+                                    className={`text-xs px-1.5 py-0.5 rounded bg-muted/60 font-mono font-semibold ${
+                                      fieldTypeTextClass[field.type?.toLowerCase()] ?? "text-red-800"
+                                    }`}
+                                  >
                                     {field.type}
                                   </span>
                                   {comment && (
@@ -454,6 +476,8 @@ function FormSectionComponent({
                     )}
                   </div>
                 </CollapsibleContent>
+
+                <Separator className="h-20"/>
               </div>
             </Collapsible>
           )
@@ -800,12 +824,12 @@ export function DynamicFormBuilder() {
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-primary/10">
-              <FileJson className="h-7 w-7 text-primary" />
+            <div className="p-2.5 rounded-xl bg-background">
+              <Dna className="h-7 w-7 text-primary" />
             </div>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
-                Dynamic Form Builder
+                Loom
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">Configure and manage your JSON data</p>
             </div>
