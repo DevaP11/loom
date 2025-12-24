@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Switch } from "@/components/ui/switch"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { ChevronDown, Plus, Trash2, FolderPlus, Info } from "lucide-react"
+import { Textarea } from "@/components/ui/textarea"
 import type {
   FormSection as FormSectionType,
   FormField,
@@ -23,6 +24,17 @@ interface FormSectionProps {
   depth?: number
   parentPath?: string
   commentsMap?: CommentsMap
+}
+
+const formatName = (str) => {
+  return str
+    .replaceAll('-', '_')
+    .split('_')
+    ?.map(part => {
+      return part.charAt(0).toUpperCase() + part.slice(1).toLowerCase()
+    })
+    ?.join(' ')
+    ?.trim()
 }
 
 export function FormSectionComponent({
@@ -143,7 +155,7 @@ export function FormSectionComponent({
                         expandedSections.includes(section.id) ? "rotate-180" : ""
                       }`}
                     />
-                    {section.name}
+                    {formatName(section.name)}
                   </h2>
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground">{section.fields.length} field(s)</span>
@@ -175,7 +187,7 @@ export function FormSectionComponent({
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-1">
                                 <Label htmlFor={field.id} className="text-sm text-muted-foreground">
-                                  {field.name}
+                                  {formatName(field.name)}
                                   <span className="ml-1 text-xs opacity-60">({field.type})</span>
                                 </Label>
                                 {comment && (
@@ -220,6 +232,23 @@ export function FormSectionComponent({
                                 }}
                                 placeholder="Comma-separated values"
                                 className="bg-background"
+                              />
+                            ) : field.type === "json" ? (
+                              <Textarea
+                                id={field.id}
+                                value={
+                                  typeof field.value === "string" ? field.value : JSON.stringify(field.value, null, 2)
+                                }
+                                onChange={(e) => {
+                                  try {
+                                    const parsed = JSON.parse(e.target.value)
+                                    updateField(section.id, field.id, parsed)
+                                  } catch {
+                                    updateField(section.id, field.id, e.target.value)
+                                  }
+                                }}
+                                placeholder="Enter JSON"
+                                className="bg-background font-mono text-xs min-h-[100px]"
                               />
                             ) : (
                               <Input
@@ -283,7 +312,7 @@ function AddFieldDialog({
   const handleAdd = () => {
     if (!name.trim()) return
 
-    let parsedValue: string | number | boolean | number[] = value
+    let parsedValue: string | number | boolean | number[] | object = value
 
     switch (type) {
       case "number":
@@ -297,6 +326,13 @@ function AddFieldDialog({
           const num = Number(v.trim())
           return isNaN(num) ? v.trim() : num
         }) as number[]
+        break
+      case "json":
+        try {
+          parsedValue = JSON.parse(value)
+        } catch {
+          parsedValue = {}
+        }
         break
     }
 
@@ -344,6 +380,7 @@ function AddFieldDialog({
                 <SelectItem value="number">Number</SelectItem>
                 <SelectItem value="boolean">Boolean</SelectItem>
                 <SelectItem value="array">Array</SelectItem>
+                <SelectItem value="json">JSON (Complex Object)</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -359,6 +396,14 @@ function AddFieldDialog({
                   <SelectItem value="false">false</SelectItem>
                 </SelectContent>
               </Select>
+            ) : type === "json" ? (
+              <Textarea
+                id="fieldValue"
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={'{"key": "value"}'}
+                className="font-mono text-sm min-h-[100px]"
+              />
             ) : (
               <Input
                 id="fieldValue"

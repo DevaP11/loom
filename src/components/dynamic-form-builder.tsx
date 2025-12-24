@@ -8,13 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 
-export type FieldType = "string" | "number" | "boolean" | "array"
+export type FieldType = "string" | "number" | "boolean" | "array" | "json"
 
 export interface FormField {
   id: string
   name: string
   type: FieldType
-  value: string | number | boolean | number[]
+  value: string | number | boolean | number[] | object
   comment?: string // Added comment support
 }
 
@@ -35,7 +35,11 @@ interface DynamicFormBuilderProps {
 function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
   if (typeof value === "number") return "number"
-  if (Array.isArray(value)) return "array"
+  if (Array.isArray(value)) {
+    const hasObjects = value.some((item) => item !== null && typeof item === "object")
+    return hasObjects ? "json" : "array"
+  }
+  if (value !== null && typeof value === "object") return "json"
   return "string"
 }
 
@@ -66,12 +70,11 @@ function parseConfigToSections(
       }
       sections.push(section)
     } else {
-      // Primitive or array becomes a field
       const field: FormField = {
         id: `field-${currentPath.replace(/\./g, "-")}`,
         name: key,
         type: getFieldType(value),
-        value: Array.isArray(value) ? value : (value as string | number | boolean),
+        value: value as string | number | boolean | number[] | object,
         comment: getComment(comments, currentPath),
       }
       generalFields.push(field)
@@ -86,19 +89,16 @@ function sectionsToConfig(sections: FormSection[]): Record<string, unknown> {
 
   sections.forEach((section) => {
     if (section.name === "General") {
-      // General section fields go to root level
       section.fields.forEach((field) => {
         result[field.name] = formatFieldValue(field)
       })
     } else {
-      // Other sections become nested objects
       const sectionData: Record<string, unknown> = {}
 
       section.fields.forEach((field) => {
         sectionData[field.name] = formatFieldValue(field)
       })
 
-      // Recursively handle subsections
       if (section.subsections.length > 0) {
         const nestedData = sectionsToConfig(section.subsections)
         Object.assign(sectionData, nestedData)
@@ -119,7 +119,6 @@ function formatFieldValue(field: FormField): unknown {
       return Boolean(field.value)
     case "array":
       if (Array.isArray(field.value)) return field.value
-      // Parse string to array if needed
       if (typeof field.value === "string") {
         try {
           return JSON.parse(field.value)
@@ -131,6 +130,15 @@ function formatFieldValue(field: FormField): unknown {
         }
       }
       return [field.value]
+    case "json":
+      if (typeof field.value === "string") {
+        try {
+          return JSON.parse(field.value)
+        } catch {
+          return field.value
+        }
+      }
+      return field.value
     default:
       return String(field.value)
   }
@@ -185,7 +193,6 @@ export function DynamicFormBuilder({ initialConfig, comments }: DynamicFormBuild
 
     const { generalFields, sections: parsedSections } = parseConfigToSections(config, commentData)
 
-    // Create General section for root-level primitives
     const allSections: FormSection[] = []
     if (generalFields.length > 0) {
       allSections.push({
@@ -299,7 +306,7 @@ export function DynamicFormBuilder({ initialConfig, comments }: DynamicFormBuild
                     value={commentsInput}
                     onChange={(e) => setCommentsInput(e.target.value)}
                     placeholder='{"CONFIG_KEY1": "Description for KEY1", "CONFIG_key3.CHILD_1": "Description"}'
-                    className="font-mono text-sm min-h-[100px]"
+                    className="font-mono text-sm max-h-[100px]"
                   />
                 </div>
               </div>
