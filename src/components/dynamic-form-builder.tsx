@@ -25,12 +25,12 @@ import {
   Eye,
   EyeOff,
   Pencil,
-  Loader2,
-  FolderOpen,
+  Settings,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-import { Separator } from "@/components/ui/separator"
 import { ConfirmDialog } from "./ConfirmDialog"
+import Link from "next/link"
+import { getProjects, type ProjectConfig } from "./project-config"
 import { SnackbarProvider, enqueueSnackbar } from 'notistack'
 const PROJECTS = ["Entertainment Enlight"] as const
 type ProjectName = (typeof PROJECTS)[number]
@@ -296,15 +296,12 @@ const formatName = (str: string) => {
 
 function EditCommentPopover({
   comment,
-  onSave,
   fieldName,
 }: {
   comment?: string
-  onSave: (comment: string) => void
   fieldName: string
 }) {
   const [open, setOpen] = useState(false)
-  const [value, setValue] = useState(comment || "")
 
   useEffect(() => {
     setValue(comment || "")
@@ -364,10 +361,8 @@ function FormSectionComponent({
   parentPath?: string
 }) {
   const [expandedSections, setExpandedSections] = useState<string[]>(sections.map((s) => s.id))
-
   const [confirmState, setConfirmState] = useState<{
     open: boolean
-    action?: () => void
     title?: string
     description?: string
   }>({ open: false })
@@ -931,15 +926,20 @@ export function DynamicFormBuilder() {
   const [copied, setCopied] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const [selectedProject, setSelectedProject] = useState<ProjectName | null>(null)
+  const [projects, setProjects] = useState<ProjectConfig[]>([])
+  const [selectedProject, setSelectedProject] = useState<ProjectConfig | null>(null)
   const [isLoadingProject, setIsLoadingProject] = useState(false)
 
-  const fetchProjectConfig = async (project: ProjectName) => {
+  useEffect(() => {
+    setProjects(getProjects())
+  }, [])
+
+  const fetchProjectConfig = async (project: ProjectConfig) => {
     setIsLoadingProject(true)
     try {
-      const response = await fetch(`http://localhost:3000/config/${project}`)
+      const response = await fetch(project.getEndpoint)
       if (!response.ok) {
-        throw new Error(`Failed to fetch config for ${project}`)
+        throw new Error(`Failed to fetch config for ${project.name}`)
       }
       const data = await response.json()
 
@@ -963,24 +963,27 @@ export function DynamicFormBuilder() {
       setSections(allSections)
 
       // Save to localStorage for this project
-      localStorage.setItem(getStorageKeyConfig(project), JSON.stringify(config))
-      localStorage.setItem(getStorageKeyComments(project), JSON.stringify(comments))
+      localStorage.setItem(getStorageKeyConfig(project.id), JSON.stringify(config))
+      localStorage.setItem(getStorageKeyComments(project.id), JSON.stringify(comments))
     } catch (error) {
       console.error("Error fetching project config:", error)
-      enqueueSnackbar(`Failed to load config for ${project}. Make sure the server is running.`)
+      enqueueSnackbar(`Failed to load config for ${project.name}. Make sure the server is running.`)
     } finally {
       setIsLoadingProject(false)
     }
   }
 
-  const handleProjectChange = (project: ProjectName) => {
-    setSelectedProject(project)
-    fetchProjectConfig(project)
+  const handleProjectChange = (projectId: string) => {
+    const project = projects.find((p) => p.id === projectId)
+    if (project) {
+      setSelectedProject(project)
+      fetchProjectConfig(project)
+    }
   }
 
   useEffect(() => {
-    const savedConfig = localStorage.getItem(getStorageKeyConfig(selectedProject))
-    const savedComments = localStorage.getItem(getStorageKeyComments(selectedProject))
+    const savedConfig = localStorage.getItem(getStorageKeyConfig(selectedProject?.id || null))
+    const savedComments = localStorage.getItem(getStorageKeyComments(selectedProject?.id || null))
 
     let config = exampleConfig
     let comments = exampleComments
@@ -1024,8 +1027,8 @@ export function DynamicFormBuilder() {
     const config = sectionsToConfig(sections)
     const comments = sectionsToComments(sections)
 
-    localStorage.setItem(getStorageKeyConfig(selectedProject), JSON.stringify(config))
-    localStorage.setItem(getStorageKeyComments(selectedProject), JSON.stringify(comments))
+    localStorage.setItem(getStorageKeyConfig(selectedProject?.id || null), JSON.stringify(config))
+    localStorage.setItem(getStorageKeyComments(selectedProject?.id || null), JSON.stringify(comments))
   }, [sections, isLoaded, selectedProject])
 
   const handleImport = () => {
@@ -1072,9 +1075,7 @@ export function DynamicFormBuilder() {
     const jsonData = buildJson()
 
     try {
-      const uploadUrl = selectedProject
-        ? `http://localhost:3000/config/${selectedProject}/upload`
-        : "http://localhost:3000/config/upload"
+      const uploadUrl = selectedProject.uploadEndpoint
 
       const response = await fetch(uploadUrl, {
         method: "POST",
@@ -1130,8 +1131,8 @@ export function DynamicFormBuilder() {
   }
 
   const clearStorage = () => {
-    localStorage.removeItem(getStorageKeyConfig(selectedProject))
-    localStorage.removeItem(getStorageKeyComments(selectedProject))
+    localStorage.removeItem(getStorageKeyConfig(selectedProject?.id || null))
+    localStorage.removeItem(getStorageKeyComments(selectedProject?.id || null))
 
     const { generalFields, sections: parsedSections } = parseConfigToSections(exampleConfig, exampleComments)
     const allSections: FormSection[] = []
@@ -1149,7 +1150,6 @@ export function DynamicFormBuilder() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
-      <SnackbarProvider />
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
@@ -1164,6 +1164,16 @@ export function DynamicFormBuilder() {
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Link href="/projects">
+              <Button
+                variant="outline"
+                className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Projects
+              </Button>
+            </Link>
+
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
               <DialogTrigger asChild>
                 <Button
@@ -1221,16 +1231,26 @@ export function DynamicFormBuilder() {
               Reset
             </Button>
 
-            <Select value={selectedProject || ""} onValueChange={(v) => handleProjectChange(v as ProjectName)}>
-              <SelectTrigger className="w-[30vh] border-muted-foreground/20 focus:border-primary">
-                <SelectValue placeholder="Select a project..." />
+            <Select value={selectedProject?.id || ""} onValueChange={handleProjectChange} disabled={isLoadingProject}>
+              <SelectTrigger className="w-[200px] border-muted-foreground/20 focus:border-primary">
+                <SelectValue placeholder={isLoadingProject ? "Loading..." : "Select project..."} />
               </SelectTrigger>
-              <SelectContent className="bg-background/20">
-                {PROJECTS.map((project) => (
-                  <SelectItem key={project} value={project} className="bg-background/10">
-                    {project.charAt(0).toUpperCase() + project.slice(1)}
-                  </SelectItem>
-                ))}
+              <SelectContent className="bg-background">
+                {projects.length === 0 ? (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                    No projects configured.
+                    <br />
+                    <Link href="/projects" className="text-primary hover:underline">
+                      Add a project
+                    </Link>
+                  </div>
+                ) : (
+                  projects.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))
+                )}
               </SelectContent>
             </Select>
 
