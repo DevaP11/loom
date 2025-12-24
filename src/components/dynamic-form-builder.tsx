@@ -31,8 +31,8 @@ import {
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { ConfirmDialog } from "./ConfirmDialog"
-
-const PROJECTS = ["project1", "project2", "project3"] as const
+import { SnackbarProvider, enqueueSnackbar } from 'notistack'
+const PROJECTS = ["Entertainment Enlight"] as const
 type ProjectName = (typeof PROJECTS)[number]
 
 type FieldType = "string" | "number" | "boolean" | "array" | "json"
@@ -720,7 +720,7 @@ function AddFieldDialog({ onAdd }: { onAdd: (field: Omit<FormField, "id">) => vo
           className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
         >
           <Plus className="h-4 w-4 mr-1.5" />
-          Add Field
+          Field
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -831,7 +831,7 @@ function AddSubsectionDialog({ onAdd }: { onAdd: (name: string) => void }) {
           className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
         >
           <FolderPlus className="h-4 w-4 mr-1.5" />
-          Add Subsection
+          Nested Field
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-md">
@@ -967,7 +967,7 @@ export function DynamicFormBuilder() {
       localStorage.setItem(getStorageKeyComments(project), JSON.stringify(comments))
     } catch (error) {
       console.error("Error fetching project config:", error)
-      alert(`Failed to load config for ${project}. Make sure the server is running.`)
+      enqueueSnackbar(`Failed to load config for ${project}. Make sure the server is running.`)
     } finally {
       setIsLoadingProject(false)
     }
@@ -1055,7 +1055,7 @@ export function DynamicFormBuilder() {
       setConfigInput("")
       setCommentsInput("")
     } catch (error) {
-      alert("Invalid JSON format. Please check your input.")
+      enqueueSnackbar("Invalid JSON format. Please check your input.")
     }
   }
 
@@ -1085,13 +1085,13 @@ export function DynamicFormBuilder() {
       })
 
       if (response.ok) {
-        alert("Configuration uploaded successfully!")
+        enqueueSnackbar("Configuration uploaded successfully!")
       } else {
-        alert("Failed to upload configuration")
+        enqueueSnackbar("Failed to upload configuration")
       }
     } catch (error) {
       console.error("Upload error:", error)
-      alert("Error uploading configuration. Make sure the server is running.")
+      enqueueSnackbar("Error uploading configuration. Make sure the server is running.")
     } finally {
       setIsSubmitting(false)
     }
@@ -1149,6 +1149,7 @@ export function DynamicFormBuilder() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
+      <SnackbarProvider />
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
