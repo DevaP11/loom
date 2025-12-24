@@ -167,21 +167,17 @@ function sectionsToConfig(sections: FormSection[]): Record<string, unknown> {
   const result: Record<string, unknown> = {}
 
   sections.forEach((section) => {
-    if (section.name === "General") {
-      section.fields.forEach((field) => {
-        result[field.name] = formatFieldValue(field)
-      })
-    } else {
-      const sectionData: Record<string, unknown> = {}
-      section.fields.forEach((field) => {
-        sectionData[field.name] = formatFieldValue(field)
-      })
-      if (section.subsections.length > 0) {
-        const nestedData = sectionsToConfig(section.subsections)
-        Object.assign(sectionData, nestedData)
-      }
-      result[section.name] = sectionData
-    }
+    const sectionData: Record<string, unknown> = {}
+
+    section.fields.forEach((field) => {
+      sectionData[field.name] = formatFieldValue(field)
+    })
+
+    section.subsections.forEach((sub) => {
+      sectionData[sub.name] = sectionsToConfig([sub])[sub.name]
+    })
+
+    result[section.name] = sectionData
   })
 
   return result
@@ -191,31 +187,29 @@ function sectionsToComments(sections: FormSection[]): NestedComments {
   const result: NestedComments = {}
 
   sections.forEach((section) => {
-    if (section.name === "General") {
-      section.fields.forEach((field) => {
-        if (field.comment?.trim()) {
-          result[field.name] = field.comment
-        }
-      })
-    } else {
-      const sectionComments: NestedComments = {}
-      section.fields.forEach((field) => {
-        if (field.comment?.trim()) {
-          sectionComments[field.name] = field.comment
-        }
-      })
-      if (section.subsections.length > 0) {
-        const nestedComments = sectionsToComments(section.subsections)
-        Object.assign(sectionComments, nestedComments)
+    const sectionComments: NestedComments = {}
+
+    section.fields.forEach((field) => {
+      if (field.comment?.trim()) {
+        sectionComments[field.name] = field.comment
       }
-      if (Object.keys(sectionComments).length > 0) {
-        result[section.name] = sectionComments
+    })
+
+    section.subsections.forEach((sub) => {
+      const nested = sectionsToComments([sub])
+      if (Object.keys(nested).length > 0) {
+        sectionComments[sub.name] = nested[sub.name]
       }
+    })
+
+    if (Object.keys(sectionComments).length > 0) {
+      result[section.name] = sectionComments
     }
   })
 
   return result
 }
+
 
 function formatFieldValue(field: FormField): unknown {
   switch (field.type) {
@@ -640,6 +634,10 @@ function AddFieldDialog({ onAdd }: { onAdd: (field: Omit<FormField, "id">) => vo
   const [type, setType] = useState<FieldType>("string")
   const [value, setValue] = useState("")
   const [comment, setComment] = useState("")
+
+  useEffect(() => {
+    if (type === "boolean") setValue("false")
+  }, [type])
 
   const handleAdd = () => {
     if (!name.trim()) return
@@ -1125,6 +1123,7 @@ export function DynamicFormBuilder() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
+        <SnackbarProvider />
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
             <div className="p-2.5 rounded-xl bg-background">
