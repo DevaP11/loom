@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Separator } from "@/components/ui/separator"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
@@ -302,6 +303,7 @@ function EditCommentPopover({
   fieldName: string
 }) {
   const [open, setOpen] = useState(false)
+  const [value, setValue] = useState(false)
 
   useEffect(() => {
     setValue(comment || "")
@@ -1078,7 +1080,7 @@ export function DynamicFormBuilder() {
       const uploadUrl = selectedProject.uploadEndpoint
 
       const response = await fetch(uploadUrl, {
-        method: "POST",
+        method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
