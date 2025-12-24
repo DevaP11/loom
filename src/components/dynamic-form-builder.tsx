@@ -25,10 +25,15 @@ import {
   Eye,
   EyeOff,
   Pencil,
+  Loader2,
+  FolderOpen,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
 import { ConfirmDialog } from "./ConfirmDialog"
+
+const PROJECTS = ["project1", "project2", "project3"] as const
+type ProjectName = (typeof PROJECTS)[number]
 
 type FieldType = "string" | "number" | "boolean" | "array" | "json"
 
@@ -67,8 +72,10 @@ const fieldTypeTextClass: FieldTypeColor = {
   json: "text-violet-800",
 }
 
-const STORAGE_KEY_CONFIG = "dynamic-form-config"
-const STORAGE_KEY_COMMENTS = "dynamic-form-comments"
+const getStorageKeyConfig = (project: ProjectName | null) =>
+  project ? `dynamic-form-config-${project}` : "dynamic-form-config"
+const getStorageKeyComments = (project: ProjectName | null) =>
+  project ? `dynamic-form-comments-${project}` : "dynamic-form-comments"
 
 function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
@@ -924,10 +931,56 @@ export function DynamicFormBuilder() {
   const [copied, setCopied] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
+  const [selectedProject, setSelectedProject] = useState<ProjectName | null>(null)
+  const [isLoadingProject, setIsLoadingProject] = useState(false)
+
+  const fetchProjectConfig = async (project: ProjectName) => {
+    setIsLoadingProject(true)
+    try {
+      const response = await fetch(`http://localhost:3000/config/${project}`)
+      if (!response.ok) {
+        throw new Error(`Failed to fetch config for ${project}`)
+      }
+      const data = await response.json()
+
+      // Expect data to have config and optionally comments
+      const config = data.config || data
+      const comments = data.comments || {}
+
+      const { generalFields, sections: parsedSections } = parseConfigToSections(config, comments)
+
+      const allSections: FormSection[] = []
+      if (generalFields.length > 0) {
+        allSections.push({
+          id: "general",
+          name: "General",
+          fields: generalFields,
+          subsections: [],
+        })
+      }
+      allSections.push(...parsedSections)
+
+      setSections(allSections)
+
+      // Save to localStorage for this project
+      localStorage.setItem(getStorageKeyConfig(project), JSON.stringify(config))
+      localStorage.setItem(getStorageKeyComments(project), JSON.stringify(comments))
+    } catch (error) {
+      console.error("Error fetching project config:", error)
+      alert(`Failed to load config for ${project}. Make sure the server is running.`)
+    } finally {
+      setIsLoadingProject(false)
+    }
+  }
+
+  const handleProjectChange = (project: ProjectName) => {
+    setSelectedProject(project)
+    fetchProjectConfig(project)
+  }
 
   useEffect(() => {
-    const savedConfig = localStorage.getItem(STORAGE_KEY_CONFIG)
-    const savedComments = localStorage.getItem(STORAGE_KEY_COMMENTS)
+    const savedConfig = localStorage.getItem(getStorageKeyConfig(selectedProject))
+    const savedComments = localStorage.getItem(getStorageKeyComments(selectedProject))
 
     let config = exampleConfig
     let comments = exampleComments
@@ -971,9 +1024,9 @@ export function DynamicFormBuilder() {
     const config = sectionsToConfig(sections)
     const comments = sectionsToComments(sections)
 
-    localStorage.setItem(STORAGE_KEY_CONFIG, JSON.stringify(config))
-    localStorage.setItem(STORAGE_KEY_COMMENTS, JSON.stringify(comments))
-  }, [sections, isLoaded])
+    localStorage.setItem(getStorageKeyConfig(selectedProject), JSON.stringify(config))
+    localStorage.setItem(getStorageKeyComments(selectedProject), JSON.stringify(comments))
+  }, [sections, isLoaded, selectedProject])
 
   const handleImport = () => {
     try {
@@ -1019,7 +1072,11 @@ export function DynamicFormBuilder() {
     const jsonData = buildJson()
 
     try {
-      const response = await fetch("http://localhost:3000/config/upload", {
+      const uploadUrl = selectedProject
+        ? `http://localhost:3000/config/${selectedProject}/upload`
+        : "http://localhost:3000/config/upload"
+
+      const response = await fetch(uploadUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -1073,8 +1130,8 @@ export function DynamicFormBuilder() {
   }
 
   const clearStorage = () => {
-    localStorage.removeItem(STORAGE_KEY_CONFIG)
-    localStorage.removeItem(STORAGE_KEY_COMMENTS)
+    localStorage.removeItem(getStorageKeyConfig(selectedProject))
+    localStorage.removeItem(getStorageKeyComments(selectedProject))
 
     const { generalFields, sections: parsedSections } = parseConfigToSections(exampleConfig, exampleComments)
     const allSections: FormSection[] = []
@@ -1113,7 +1170,7 @@ export function DynamicFormBuilder() {
                   className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Import
+                  Import JSON
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
@@ -1163,6 +1220,19 @@ export function DynamicFormBuilder() {
               Reset
             </Button>
 
+            <Select value={selectedProject || ""} onValueChange={(v) => handleProjectChange(v as ProjectName)}>
+              <SelectTrigger className="w-[30vh] border-muted-foreground/20 focus:border-primary">
+                <SelectValue placeholder="Select a project..." />
+              </SelectTrigger>
+              <SelectContent className="bg-background/20">
+                {PROJECTS.map((project) => (
+                  <SelectItem key={project} value={project} className="bg-background/10">
+                    {project.charAt(0).toUpperCase() + project.slice(1)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
               <Send className="h-4 w-4 mr-2" />
               {isSubmitting ? "Uploading..." : "Submit"}
@@ -1177,7 +1247,7 @@ export function DynamicFormBuilder() {
         <div className="mt-8 bg-gradient-to-br from-card to-card/50 rounded-xl border shadow-sm">
           <div className="p-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold tracking-tight">Preview</h3>
+              <h3 className="text-base font-semibold tracking-tight">Raw Configuration Preview</h3>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="hover:bg-muted">
@@ -1202,6 +1272,12 @@ export function DynamicFormBuilder() {
                 <Label className="text-xs text-muted-foreground mb-2 block">config.json</Label>
                 <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 font-mono">
                   {JSON.stringify(buildJson(), null, 2)}
+                </pre>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground mb-2 block">comments.json</Label>
+                <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                  {JSON.stringify(buildCommentsJson(), null, 2)}
                 </pre>
               </div>
             </div>
