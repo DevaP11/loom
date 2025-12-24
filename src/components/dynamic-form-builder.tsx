@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Minus, Dna,  Plus, Trash2, FolderPlus, Info, Send, FileJson, Upload, Copy, Check, Download, Eye, EyeOff } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
+import { ConfirmDialog } from './ConfirmDialog'
 
 type FieldType = "string" | "number" | "boolean" | "array" | "json"
 
@@ -211,6 +212,13 @@ function FormSectionComponent({
 }) {
   const [expandedSections, setExpandedSections] = useState<string[]>(sections.map((s) => s.id))
 
+  const [confirmState, setConfirmState] = useState<{
+    open: boolean
+    action?: () => void
+    title?: string
+    description?: string
+  }>({ open: false })
+
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) =>
       prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
@@ -300,6 +308,15 @@ function FormSectionComponent({
 
   return (
     <TooltipProvider>
+      <ConfirmDialog
+        open={confirmState.open}
+        title={confirmState.title}
+        description={confirmState.description}
+        confirmText="Delete"
+        destructive
+        onCancel={() => setConfirmState({ open: false })}
+        onConfirm={() => confirmState.action?.()}
+      />
       <div className="space-y-3">
         {sections.map((section) => {
           const sectionPath = parentPath ? `${parentPath}.${section.name}` : section.name
@@ -340,9 +357,12 @@ function FormSectionComponent({
                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
                         onClick={(e) => {
                           e.stopPropagation()
-                          if (confirm('Delete this section and all its contents?')) {
-                            removeSection(section.id)
-                          }
+                          setConfirmState({
+                              open: true,
+                              title: "Delete section?",
+                              description: "This section and all nested fields will be removed.",
+                              action: () => removeSection(section.id),
+                          })
                         }}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -388,11 +408,14 @@ function FormSectionComponent({
                                   variant="ghost"
                                   size="icon"
                                   className="h-7 w-7 opacity-0 group-hover/field:opacity-100 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
-                                  onClick={() => {
-                                    if (confirm(`Delete field "${field.name}"?`)) {
-                                      removeField(section.id, field.id)
-                                    }
-                                  }}
+                                  onClick={() =>
+                                    setConfirmState({
+                                        open: true,
+                                        title: `Delete field "${field.name}"?`,
+                                        description: "This section and all nested fields will be removed.",
+                                        action: () => removeField(section.id, field.id),
+                                    })
+                                  }
                                 >
                                   <Trash2 className="h-3.5 w-3.5" />
                                 </Button>
@@ -894,8 +917,8 @@ export function DynamicFormBuilder() {
         <div className="mt-8 bg-gradient-to-br from-card to-card/50 rounded-xl border shadow-sm">
           <div className="p-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
-              <FileJson className="h-5 w-5 text-primary" />
-              <h3 className="text-base font-semibold">JSON Output Preview</h3>
+              {/*<FileJson className="h-5 w-5 text-primary" />*/}
+              <h3 className="text-base font-semibold tracking-tight">Raw Configuration Preview</h3>
             </div>
             <div className="flex gap-2">
               <Button
@@ -905,7 +928,6 @@ export function DynamicFormBuilder() {
                 className="hover:bg-muted"
               >
                 {showPreview ? <EyeOff className="h-4 w-4 mr-1.5" /> : <Eye className="h-4 w-4 mr-1.5" />}
-                {showPreview ? "Hide" : "Show"}
               </Button>
               <Button
                 variant="ghost"
@@ -914,7 +936,6 @@ export function DynamicFormBuilder() {
                 className="hover:bg-muted"
               >
                 {copied ? <Check className="h-4 w-4 mr-1.5 text-green-500" /> : <Copy className="h-4 w-4 mr-1.5" />}
-                {copied ? "Copied!" : "Copy"}
               </Button>
               <Button
                 variant="ghost"
@@ -923,7 +944,6 @@ export function DynamicFormBuilder() {
                 className="hover:bg-muted"
               >
                 <Download className="h-4 w-4 mr-1.5" />
-                Download
               </Button>
             </div>
           </div>
