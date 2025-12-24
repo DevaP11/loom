@@ -1,0 +1,140 @@
+{
+  "EXTERNAL_LOGGING_SERVICES": ["cloudwatch"],
+  "ENABLE_SERVER_LOGS": "true",
+  "LOG_PROCESSING_INTERVAL": 1000,
+  "MAX_BUFFER_SIZE": 1000,
+  "APP_BASE_URL": "https://api-entertainment-v1.enlight.diagnal.com",
+  "WEB_BASE_URL": "https://demo.enlight.diagnal.com",
+  "DEFAULT_LANGUAGE": "en",
+  "AWS_REGION": "ap-south-1",
+  "ENHANCE": {
+    "URL": "https://m6sxnrqhdbhonmoh7ie2vxkm74.appsync-api.ap-south-1.amazonaws.com/graphql",
+    "API_KEY": "da2-5ncxixtqvfawjno24miuza44me",
+    "PROJECT_NAME": "de"
+  },
+  "AUTH": {
+    "ENCRYPTION_TYPE": "xor",
+    "COGNITO_USER_POOL_ID": "ap-south-1_iGZjWwRbq",
+    "COGNITO_CLIENT_ID": "3e44h9mobodqpa1ukvj4ji07va",
+    "REFRESH_TOKEN_VALIDITY": 77600,
+    "JWT_KEY": "b33113b1b85716823635348da9010b17",
+    "SET_PASSWORD_LATER_WORKFLOW": "true",
+    "INTERIM_DATA_TTL": 86400,
+    "SET_PASSWORD_TOKEN_HEX": "eba165d16m561nbys635s48xa9s10a16",
+    "SET_PASSWORD_IV": "fd5d3abab7f7504b215ba428ebe175be",
+    "SET_PASSWORD_TOKEN_EXPIRY": 900,
+    "GUEST_USER_RATING": {
+      "MY": "18",
+      "SG": "M18"
+    },
+    "DEVICE_CODE_VALIDITY": 300
+  },
+  "TABLES": {
+    "ENTITLEMENT_TABLE": "EntitlementsTable-entertainment-enlight",
+    "PROFILE_TABLE": "MultiProfileTable-entertainment-enlight",
+    "INTERIM_ACCOUNT_DATA_STORE_TABLE": "InterimAccountDataStore-entertainment-enlight",
+    "APP_STATE_STORE_TABLE": "UserAppStateStore-entertainment-enlight",
+    "CONSUMER_DATA_TABLE": "ConsumerDataTable-entertainment-enlight",
+    "DEVICE_AUTHENTICATION_TABLE": "DeviceAuthenticationTable-entertainment-enlight",
+    "FAVOURITE_LIST_TABLE": "FavouriteListTable-entertainment-enlight",
+    "SEARCH_HISTORY_TABLE": "SearchHistoryTable-entertainment-enlight",
+    "CONTENT_PROGRESS_TABLE": "ContentProgressTable-entertainment-enlight"
+  },
+  "RECOMBEE": {
+    "RECOMBEE_DB_NAME": "diagnal-prod",
+    "RECOMBEE_DB_SECRET_KEY": "oLJZ7XbdE1l0WLjNgFvPY3r0XXKeAmWqXu9MNfx2vjt23lZZ1FIhOYyq3X6cytTO",
+    "RECOMBEE_DB_REGION": "eu-west"
+  },
+  "PROFILES": {
+    "PROFILE_CREATION_LIMIT": 3,
+    "HIGHEST_POSSIBLE_RATING": "R21"
+  },
+  "RDS": {
+    "HOST_URL": "dg-xo-commerce-services-d-commerceintegrationsrdsi-hzdnto3he8nl.cyiyzccapyzt.ap-south-1.rds.amazonaws.com",
+    "DEFAULT_TABLE": "PaymentsDefaultTable",
+    "CREDENTIAL_SECRET_ARN": "arn:aws:secretsmanager:ap-south-1:065363271118:secret:rds!cluster-c20b3d35-de95-436d-9bf1-7b9050527de9-m0vOrK",
+    "USERNAME": "admin"
+  },
+  "FEATURE_FLAGS": {
+    "IS_ENTITLEMENT_CHECKS_ENABLED": "true"
+  },
+  "CACHE": {
+    "KEYDB_SERVER_IP": "13.127.211.97",
+    "CACHE_KILL_SWITCH": false,
+    "LRU_DISABLED": ["config", "cast"],
+    "KEYDB_TTL": {
+      "CATEGORY": 172800,
+      "PRODUCTS": 86400,
+      "FAVOURITES": 1800,
+      "FEED": 600
+    }
+  },
+  "RULES": {
+    "feed_filter": {
+      "<=": [
+        {
+          "var": "rating"
+        },
+        {
+          "var": "maxParentalRatings"
+        }
+      ]
+    }
+  },
+  "RATING_SYSTEMS": {
+    "TH": [
+      "G",
+      "PG",
+      "13+",
+      "16+",
+      "18+"
+    ],
+    "SG": [
+      "G",
+      "PG",
+      "PG13",
+      "NC16",
+      "M18",
+      "R21"
+    ],
+    "PH": [
+      "G",
+      "PG",
+      "13+",
+      "16+",
+      "18+"
+    ],
+    "MY": [
+      "U",
+      "P12",
+      "13",
+      "16",
+      "18"
+    ],
+    "ID": [
+      "G",
+      "PG",
+      "13+",
+      "16+",
+      "18+"
+    ],
+    "IN": [
+      "U",
+      "UA",
+      "G",
+      "15",
+      "18",
+      "21+",
+      "21"
+    ],
+    "AE": [
+      "G",
+      "PG",
+      "PG13",
+      "15",
+      "15+",
+      "18",
+      "18+"
+    ]
+  }
+}
