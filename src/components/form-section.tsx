@@ -15,7 +15,6 @@ import type {
   FormSection as FormSectionType,
   FormField,
   FieldType,
-  CommentsMap,
 } from "@/components/dynamic-form-builder"
 
 interface FormSectionProps {
@@ -23,7 +22,7 @@ interface FormSectionProps {
   onUpdate: (sections: FormSectionType[]) => void
   depth?: number
   parentPath?: string
-  commentsMap?: CommentsMap
+  commentsMap?: any
 }
 
 const formatName = (str) => {

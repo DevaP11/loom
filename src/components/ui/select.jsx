@@ -25,7 +25,7 @@ function SelectValue({
 }
 
 function SelectTrigger({
-  className,
+  className = "",
   size = "default",
   children,
   ...props
@@ -48,7 +48,7 @@ function SelectTrigger({
 }
 
 function SelectContent({
-  className,
+  className = "",
   children,
   position = "item-aligned",
   align = "center",
@@ -80,7 +80,7 @@ function SelectContent({
 }
 
 function SelectLabel({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -92,7 +92,7 @@ function SelectLabel({
 }
 
 function SelectItem({
-  className,
+  className = "",
   children,
   ...props
 }) {
@@ -117,7 +117,7 @@ function SelectItem({
 }
 
 function SelectSeparator({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -129,7 +129,7 @@ function SelectSeparator({
 }
 
 function SelectScrollUpButton({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -143,7 +143,7 @@ function SelectScrollUpButton({
 }
 
 function SelectScrollDownButton({
-  className,
+  className = "",
   ...props
 }) {
   return (

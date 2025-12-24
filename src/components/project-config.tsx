@@ -4,9 +4,9 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Plus, Trash2, Edit, FolderOpen, ArrowLeft, Save } from "lucide-react"
+import { Plus, Trash2, Edit, FolderOpen, ArrowLeft, Save, ArrowRight } from "lucide-react"
 import Link from "next/link"
 
 export interface ProjectConfig {
@@ -112,11 +112,6 @@ export function ProjectConfigPage() {
       <div className="max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <Link href="/">
-              <Button variant="ghost" size="icon" className="hover:bg-muted">
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-            </Link>
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Project Configuration
@@ -195,7 +190,7 @@ export function ProjectConfigPage() {
               <FolderOpen className="h-12 w-12 text-muted-foreground/50 mb-4" />
               <h3 className="text-lg font-medium text-foreground mb-1">No projects yet</h3>
               <p className="text-sm text-muted-foreground mb-4">Add your first project to get started</p>
-              <Button onClick={() => setIsAddOpen(true)} variant="outline" className="bg-primary/90 text-white p-2 hover:bg-primary/80 hover:text-white">
+              <Button onClick={() => setIsAddOpen(true)} variant="outline" className="bg-primary/90 text-white p-2 hover:bg-primary/80 hover:text-white mb-4">
                 <Plus className="h-4 w-4 mr-2" />
                 Add Project
               </Button>
@@ -243,6 +238,14 @@ export function ProjectConfigPage() {
                     </code>
                   </div>
                 </CardContent>
+                <CardFooter className="flex flex-row justify-end">
+                  <Button onClick={() => {
+                    window.location.href = "/"
+                  }} variant="outline" className="bg-primary/90 text-white p-2 hover:bg-primary/80 hover:text-white mb-4">
+                    <ArrowRight className="h-4 w-4 mr-2" />
+                    Start Configuring
+                  </Button>
+                </CardFooter>
               </Card>
             ))}
           </div>

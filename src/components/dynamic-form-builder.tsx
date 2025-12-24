@@ -57,6 +57,13 @@ type NestedComments = {
   [key: string]: string | NestedComments
 }
 
+interface ConfirmStateType {
+  open: boolean
+  title?: string
+  description?: string
+  action?: () => void
+}
+
 interface FieldTypeColor {
   string: string
   number: string
@@ -73,9 +80,10 @@ const fieldTypeTextClass: FieldTypeColor = {
   json: "text-violet-800",
 }
 
-const getStorageKeyConfig = (project: ProjectName | null) =>
+const getStorageKeyConfig = (project: string | null) =>
   project ? `dynamic-form-config-${project}` : "dynamic-form-config"
-const getStorageKeyComments = (project: ProjectName | null) =>
+
+const getStorageKeyComments = (project: string | null) =>
   project ? `dynamic-form-comments-${project}` : "dynamic-form-comments"
 
 function getFieldType(value: unknown): FieldType {
@@ -242,47 +250,9 @@ function formatFieldValue(field: FormField): unknown {
   }
 }
 
-const exampleConfig: Record<string, unknown> = {
-  CONFIG_KEY1: "random_string",
-  CONFIG_KEY2: true,
-  CONFIG_key3: {
-    CHILD_1: 12,
-    CHILD_2: [3, 4, 5],
-  },
-  Header: {
-    Type: "Invoice",
-    Number: 6496721,
-    DateIssued: "30/11/2018",
-    DateDue: "31/12/2018",
-  },
-  Company: {
-    Name: "Abc company",
-    Tax: "",
-    Contact: {
-      Email: "",
-      Phone: "",
-    },
-  },
-}
+const exampleConfig: Record<string, unknown> = {}
 
-const exampleComments: NestedComments = {
-  CONFIG_KEY1: "Primary configuration string",
-  CONFIG_KEY2: "Enable or disable feature flag",
-  CONFIG_key3: {
-    CHILD_1: "Numeric threshold value",
-    CHILD_2: "Array of priority levels",
-  },
-  Header: {
-    Type: "Document type (Invoice, Quote, etc.)",
-    Number: "Unique document number",
-  },
-  Company: {
-    Name: "Legal company name",
-    Contact: {
-      Email: "Primary contact email address",
-    },
-  },
-}
+const exampleComments: NestedComments = {}
 
 const formatName = (str: string) => {
   if (str.length < 4) return str
@@ -298,12 +268,14 @@ const formatName = (str: string) => {
 function EditCommentPopover({
   comment,
   fieldName,
+  onSave
 }: {
   comment?: string
   fieldName: string
+  onSave?: (string) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState(false)
+  const [open, setOpen] = useState<boolean>(false)
+  const [value, setValue] = useState<string>()
 
   useEffect(() => {
     setValue(comment || "")
@@ -363,11 +335,7 @@ function FormSectionComponent({
   parentPath?: string
 }) {
   const [expandedSections, setExpandedSections] = useState<string[]>(sections.map((s) => s.id))
-  const [confirmState, setConfirmState] = useState<{
-    open: boolean
-    title?: string
-    description?: string
-  }>({ open: false })
+  const [confirmState, setConfirmState] = useState<ConfirmStateType>({ open: false })
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections((prev) =>
@@ -933,7 +901,11 @@ export function DynamicFormBuilder() {
   const [isLoadingProject, setIsLoadingProject] = useState(false)
 
   useEffect(() => {
-    setProjects(getProjects())
+    const projectsFromLocal = getProjects()
+    setProjects(projectsFromLocal)
+    if (projectsFromLocal?.length === 0) {
+      window.location.href = "/projects"
+    }
   }, [])
 
   const fetchProjectConfig = async (project: ProjectConfig) => {
@@ -1183,7 +1155,7 @@ export function DynamicFormBuilder() {
                   className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  Import JSON
+                  Import
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-2xl">
@@ -1310,3 +1282,5 @@ export function DynamicFormBuilder() {
     </div>
   )
 }
+
+export type { FormField, FormSection, FieldType };

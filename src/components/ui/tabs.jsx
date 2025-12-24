@@ -6,7 +6,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs"
 import { cn } from "@/lib/utils"
 
 function Tabs({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -18,7 +18,7 @@ function Tabs({
 }
 
 function TabsList({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -33,7 +33,7 @@ function TabsList({
 }
 
 function TabsTrigger({
-  className,
+  className = "",
   ...props
 }) {
   return (
@@ -48,7 +48,7 @@ function TabsTrigger({
 }
 
 function TabsContent({
-  className,
+  className = "",
   ...props
 }) {
   return (

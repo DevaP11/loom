@@ -33,16 +33,16 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onCancel}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+        <DialogHeader >
+          <DialogTitle >{title}</DialogTitle>
         </DialogHeader>
 
         {description && (
           <p className="text-sm text-muted-foreground">{description}</p>
         )}
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
+        <DialogFooter >
+          <Button variant="outline" onClick={onCancel} >
             {cancelText}
           </Button>
           <Button
