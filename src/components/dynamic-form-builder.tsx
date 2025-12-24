@@ -90,8 +90,7 @@ function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
   if (typeof value === "number") return "number"
   if (Array.isArray(value)) {
-    const hasObjects = value.some((item) => item !== null && typeof item === "object")
-    return hasObjects ? "json" : "array"
+    return "array"
   }
   if (value !== null && typeof value === "object") return "json"
   return "string"
@@ -317,6 +316,68 @@ function EditCommentPopover({
   )
 }
 
+function EditSectionDialog({
+  name,
+  onSave,
+}: {
+  name: string
+  onSave: (newName: string) => void
+}) {
+  const [open, setOpen] = useState(false)
+  const [value, setValue] = useState(name)
+
+  useEffect(() => {
+    setValue(name)
+  }, [name])
+
+  const handleSave = () => {
+    if (!value.trim()) return
+    onSave(value.trim())
+    setOpen(false)
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-primary"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Pencil className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit Section Name</DialogTitle>
+        </DialogHeader>
+
+        <div className="grid gap-2 py-4">
+          <Label>Section Name</Label>
+          <Input
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSave()}
+            autoFocus
+          />
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={!value.trim()}>
+            Save
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+
 function FormSectionComponent({
   sections,
   onUpdate,
@@ -371,7 +432,7 @@ function FormSectionComponent({
         section.id === sectionId
           ? {
               ...section,
-              fields: [...section.fields, { ...field, id: `field-${Date.now()}` }],
+              fields: [...section.fields, { ...field, id: `field-${crypto.randomUUID()}` }],
             }
           : section,
       ),
@@ -427,6 +488,18 @@ function FormSectionComponent({
     onUpdate(sections.filter((section) => section.id !== sectionId))
   }
 
+  const renameSection = (sectionId: string, newName: string) => {
+    if (!newName.trim()) return
+
+    onUpdate(
+      sections.map((section) =>
+        section.id === sectionId
+          ? { ...section, name: newName }
+          : section
+      )
+    )
+  }
+
   return (
     <TooltipProvider>
       <ConfirmDialog
@@ -452,8 +525,8 @@ function FormSectionComponent({
                 <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-t-xl group">
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded-full bg-primary/75 group-hover:bg-primary transition-colors">
-                      {isExpanded && <Plus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
-                      {!isExpanded && <Minus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
+                      {isExpanded && <Minus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
+                      {!isExpanded && <Plus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
                     </div>
                     <h2 className="text-base font-semibold text-foreground">{formatName(section.name)}</h2>
                   </div>
@@ -461,6 +534,30 @@ function FormSectionComponent({
                     <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
                       {section.fields.length} {section.fields.length === 1 ? "field" : "fields"}
                     </span>
+                    {depth === 0 && section.name !== "General" && (
+                        <EditSectionDialog
+                          name={section.name}
+                          onSave={(newName) => renameSection(section.id, newName)}
+                        />
+                    )}
+                    {depth === 0 && section.name !== "General" && (
+                       <Button
+                         variant="ghost"
+                         size="icon"
+                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                         onClick={(e) => {
+                           e.stopPropagation()
+                           setConfirmState({
+                             open: true,
+                             title: `Delete section "${formatName(section.name)}"?`,
+                             description: "This section and all nested fields will be permanently removed.",
+                             action: () => removeSection(section.id),
+                           })
+                         }}
+                       >
+                         <Trash2 className="h-4 w-4" />
+                       </Button>
+                     )}
                     {depth > 0 && (
                       <Button
                         variant="ghost"
@@ -616,7 +713,7 @@ function FormSectionComponent({
                   </div>
                 </CollapsibleContent>
 
-                <Separator className="h-20" />
+                <Separator className="my-4" />
               </div>
             </Collapsible>
           )
@@ -917,6 +1014,7 @@ export function DynamicFormBuilder() {
 
       // Expect data to have config and optionally comments
       const config = data.config || data
+      delete config.debug
       const comments = data.comments || {}
 
       const { generalFields, sections: parsedSections } = parseConfigToSections(config, comments)
