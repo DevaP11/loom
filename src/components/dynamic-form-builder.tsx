@@ -90,7 +90,8 @@ function getFieldType(value: unknown): FieldType {
   if (typeof value === "boolean") return "boolean"
   if (typeof value === "number") return "number"
   if (Array.isArray(value)) {
-    return "array"
+    const hasObjects = value.some((item) => item !== null && typeof item === "object")
+    return hasObjects ? "json" : "array"
   }
   if (value !== null && typeof value === "object") return "json"
   return "string"
@@ -1142,6 +1143,7 @@ export function DynamicFormBuilder() {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     const jsonData = buildJson()
+    const commentsData = buildCommentsJson()
 
     try {
       const uploadUrl = selectedProject.uploadEndpoint
@@ -1151,7 +1153,7 @@ export function DynamicFormBuilder() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(jsonData),
+        body: JSON.stringify({config: jsonData, comments: commentsData}),
       })
 
       if (response.ok) {
@@ -1230,7 +1232,7 @@ export function DynamicFormBuilder() {
               <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Loom
               </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">Configure and manage your JSON data</p>
+              <p className="text-sm text-muted-foreground mt-0.5">Configure and manage your app</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
