@@ -1014,7 +1014,6 @@ export function DynamicFormBuilder() {
 
       // Expect data to have config and optionally comments
       const config = data.config || data
-      delete config.debug
       const comments = data.comments || {}
 
       const { generalFields, sections: parsedSections } = parseConfigToSections(config, comments)
@@ -1339,7 +1338,7 @@ export function DynamicFormBuilder() {
         <div className="mt-8 bg-gradient-to-br from-card to-card/50 rounded-xl border shadow-sm">
           <div className="p-4 flex items-center justify-between border-b">
             <div className="flex items-center gap-2">
-              <h3 className="text-base font-semibold tracking-tight">Raw Configuration Preview</h3>
+              <h3 className="text-base font-semibold tracking-wide">Raw Configuration Preview</h3>
             </div>
             <div className="flex gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="hover:bg-muted">
@@ -1362,7 +1361,7 @@ export function DynamicFormBuilder() {
             <div className="p-4 space-y-4">
               <div>
                 <Label className="text-xs text-muted-foreground mb-2 block">config.json</Label>
-                <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 font-mono">
+                <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 tracking-widest font-mono">
                   {JSON.stringify(buildJson(), null, 2)}
                 </pre>
               </div>
