@@ -1344,21 +1344,23 @@ export function DynamicFormBuilder() {
             <div className="flex items-center gap-2">
               <h3 className="text-base font-semibold tracking-wide">Raw Configuration Preview</h3>
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-row gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowPreview(!showPreview)} className="hover:bg-muted">
                 {showPreview ? <EyeOff className="h-4 w-4 mr-1.5" /> : <Eye className="h-4 w-4 mr-1.5" />}
               </Button>
               <Button variant="ghost" size="sm" onClick={copyToClipboard} className="hover:bg-muted">
                 {copied ? <Check className="h-4 w-4 mr-1.5 text-green-500" /> : <Copy className="h-4 w-4 mr-1.5" />}
               </Button>
-              <Button variant="ghost" size="sm" onClick={downloadJson} className="hover:bg-muted">
-                <Download className="h-4 w-4 mr-1.5" />
-                Config
-              </Button>
-              <Button variant="ghost" size="sm" onClick={downloadCommentsJson} className="hover:bg-muted">
-                <Download className="h-4 w-4 mr-1.5" />
-                Comments
-              </Button>
+              <div>
+                <Button variant="ghost" size="sm" onClick={downloadJson} className="hover:bg-muted">
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Config
+                </Button>
+                <Button variant="ghost" size="sm" onClick={downloadCommentsJson} className="hover:bg-muted">
+                  <Download className="h-4 w-4 mr-1.5" />
+                  Comments
+                </Button>
+              </div>
             </div>
           </div>
           {showPreview && (
