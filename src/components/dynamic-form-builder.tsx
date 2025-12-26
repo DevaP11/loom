@@ -29,7 +29,8 @@ import {
   Settings,
 } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
-import { ConfirmDialog } from "./ConfirmDialog"
+import { ConfirmDialog } from "./confirm-dialog"
+import { AutoWidthInput } from "./auto-width-input"
 import Link from "next/link"
 import { getProjects, type ProjectConfig } from "./project-config"
 import { SnackbarProvider, enqueueSnackbar } from 'notistack'
@@ -516,11 +517,12 @@ function FormSectionComponent({
         {sections.map((section) => {
           const sectionPath = parentPath ? `${parentPath}.${section.name}` : section.name
           const isExpanded = expandedSections.includes(section.id)
+          const hasWideField = section.fields.some(f => typeof (f.value) === "string" && f.value?.length > 50);
 
           return (
             <Collapsible key={section.id} open={isExpanded} onOpenChange={() => toggleSection(section.id)}>
               <div
-                className="bg-gradient-to-br from-card to-card/50 rounded-xl hover:shadow-md transition-all duration-200"
+                className={"bg-gradient-to-br from-card to-card/50 rounded-xl hover:shadow-md transition-all duration-200"}
                 style={{ marginLeft: depth > 0 ? `${depth * 20}px` : 0 }}
               >
                 <CollapsibleTrigger className="w-full p-4 flex items-center justify-between hover:bg-muted/30 transition-colors rounded-t-xl group">
@@ -583,7 +585,7 @@ function FormSectionComponent({
                 <CollapsibleContent>
                   <div className="p-5 pt-2 space-y-5">
                     {section.fields.length > 0 && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      <div className={`grid gap-4 ${hasWideField ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'}`} >
                         {section.fields.map((field) => {
                           return (
                             <div key={field.id} className="space-y-2 group/field">
@@ -676,7 +678,7 @@ function FormSectionComponent({
                                   className="bg-background hover:bg-accent/5 transition-colors font-mono text-xs min-h-[100px] border-muted-foreground/20 focus:border-primary"
                                 />
                               ) : (
-                                <Input
+                                <AutoWidthInput
                                   id={field.id}
                                   type={field.type === "number" ? "number" : "text"}
                                   value={field.value as string | number}
@@ -1220,12 +1222,12 @@ export function DynamicFormBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/20 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background opacity-98 to-muted/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <SnackbarProvider />
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-background">
+            <div className="p-2.5 rounded-full bg-accent">
               <Dna className="h-7 w-7 text-primary" />
             </div>
             <div>
