@@ -1237,7 +1237,7 @@ export function DynamicFormBuilder() {
               <p className="text-sm text-muted-foreground mt-0.5">Configure and manage your app</p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap justify-start gap-2">
             <Link href="/projects">
               <Button
                 variant="outline"

@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <main className="min-h-screen p-6 bg-stone-100">
       <LinePath
-        className="absolute top-0 right-25 z-0"
+        className="absolute top-0 left-40 2xl:left-140 z-0"
         scrollYProgress={scrollYProgress}
       />
       <div className="relative z-10">
