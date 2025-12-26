@@ -1138,18 +1138,29 @@ export function DynamicFormBuilder() {
     return sectionsToConfig(sections)
   }
 
+  const buildTrueJson = (): Record<string, unknown> => {
+    const jsonData = sectionsToConfig(sections)
+    const shallowClone = JSON.parse(JSON.stringify(jsonData))
+    if (shallowClone.General) {
+      Object.keys(shallowClone.General).forEach(key => {
+        shallowClone[key] = shallowClone.General[key]
+      })
+      delete shallowClone.General
+    }
+    return shallowClone
+  }
+
   const buildCommentsJson = (): NestedComments => {
     return sectionsToComments(sections)
   }
 
   const handleSubmit = async () => {
     setIsSubmitting(true)
-    const jsonData = buildJson()
+    const jsonData = buildTrueJson()
     const commentsData = buildCommentsJson()
 
     try {
       const uploadUrl = selectedProject.uploadEndpoint
-
       const response = await fetch(uploadUrl, {
         method: "PUT",
         headers: {
@@ -1368,7 +1379,7 @@ export function DynamicFormBuilder() {
               <div>
                 <Label className="text-xs text-muted-foreground mb-2 block">config.json</Label>
                 <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 tracking-widest font-mono">
-                  {JSON.stringify(buildJson(), null, 2)}
+                  {JSON.stringify(buildTrueJson(), null, 2)}
                 </pre>
               </div>
               <div>
