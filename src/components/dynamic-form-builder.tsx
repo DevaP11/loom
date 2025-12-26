@@ -1138,7 +1138,7 @@ export function DynamicFormBuilder() {
     return sectionsToConfig(sections)
   }
 
-  const buildTrueJson = (): Record<string, unknown> => {
+  const buildTrueJson = (): Record<string, unknown> => { // remove `General` section and return the json in it's original format
     const jsonData = sectionsToConfig(sections)
     const shallowClone = JSON.parse(JSON.stringify(jsonData))
     if (shallowClone.General) {
