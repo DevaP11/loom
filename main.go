@@ -2,7 +2,6 @@ package main
 
 import (
     "net/http"
-    // "path/filepath"
 
     "github.com/gin-gonic/gin"
 )
@@ -22,7 +21,6 @@ func main() {
 
     // Serve static files and handle SPA routing
     router.NoRoute(func(c *gin.Context) {
-        // path := filepath.Join("./out", c.Request.URL.Path)
 
         // Check if file exists
         if _, err := http.Dir("./out").Open(c.Request.URL.Path); err == nil {
