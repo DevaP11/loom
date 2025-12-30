@@ -1,36 +1,36 @@
 package main
 
 import (
-    "net/http"
+	"net/http"
 
-    "github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-    router := gin.Default()
+	router := gin.Default()
 
-    // API routes
-    api := router.Group("/api")
-    {
-        api.GET("/hello", func(c *gin.Context) {
-            c.JSON(200, gin.H{
-                "message": "Hello from the Go API!",
-            })
-        })
-    }
+	// API routes
+	api := router.Group("/api")
+	{
+		api.GET("/hello", func(c *gin.Context) {
+			c.JSON(200, gin.H{
+				"message": "Hello from the Go API!",
+			})
+		})
+	}
 
-    // Serve static files and handle SPA routing
-    router.NoRoute(func(c *gin.Context) {
+	// Serve static files and handle SPA routing
+	router.NoRoute(func(c *gin.Context) {
 
-        // Check if file exists
-        if _, err := http.Dir("./out").Open(c.Request.URL.Path); err == nil {
-            c.FileFromFS(c.Request.URL.Path, http.Dir("./out"))
-            return
-        }
+		// Check if file exists
+		if _, err := http.Dir("./out").Open(c.Request.URL.Path); err == nil {
+			c.FileFromFS(c.Request.URL.Path, http.Dir("./out"))
+			return
+		}
 
-        // Fallback to index.html for client-side routes
-        c.File("./out/index.html")
-    })
+		// Fallback to index.html for client-side routes
+		c.File("./out/index.html")
+	})
 
-    router.Run(":3000")
+	router.Run(":3000")
 }

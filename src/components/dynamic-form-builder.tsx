@@ -405,9 +405,9 @@ function FormSectionComponent({
       sections.map((section) =>
         section.id === sectionId
           ? {
-              ...section,
-              fields: section.fields.map((field) => (field.id === fieldId ? { ...field, value } : field)),
-            }
+            ...section,
+            fields: section.fields.map((field) => (field.id === fieldId ? { ...field, value } : field)),
+          }
           : section,
       ),
     )
@@ -418,11 +418,11 @@ function FormSectionComponent({
       sections.map((section) =>
         section.id === sectionId
           ? {
-              ...section,
-              fields: section.fields.map((field) =>
-                field.id === fieldId ? { ...field, comment: comment || undefined } : field,
-              ),
-            }
+            ...section,
+            fields: section.fields.map((field) =>
+              field.id === fieldId ? { ...field, comment: comment || undefined } : field,
+            ),
+          }
           : section,
       ),
     )
@@ -433,9 +433,9 @@ function FormSectionComponent({
       sections.map((section) =>
         section.id === sectionId
           ? {
-              ...section,
-              fields: [...section.fields, { ...field, id: `field-${crypto.randomUUID()}` }],
-            }
+            ...section,
+            fields: [...section.fields, { ...field, id: `field-${crypto.randomUUID()}` }],
+          }
           : section,
       ),
     )
@@ -446,9 +446,9 @@ function FormSectionComponent({
       sections.map((section) =>
         section.id === sectionId
           ? {
-              ...section,
-              fields: section.fields.filter((field) => field.id !== fieldId),
-            }
+            ...section,
+            fields: section.fields.filter((field) => field.id !== fieldId),
+          }
           : section,
       ),
     )
@@ -538,29 +538,29 @@ function FormSectionComponent({
                       {section.fields.length} {section.fields.length === 1 ? "field" : "fields"}
                     </span>
                     {depth === 0 && section.name !== "General" && (
-                        <EditSectionDialog
-                          name={section.name}
-                          onSave={(newName) => renameSection(section.id, newName)}
-                        />
+                      <EditSectionDialog
+                        name={section.name}
+                        onSave={(newName) => renameSection(section.id, newName)}
+                      />
                     )}
                     {depth === 0 && section.name !== "General" && (
-                       <Button
-                         variant="ghost"
-                         size="icon"
-                         className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                         onClick={(e) => {
-                           e.stopPropagation()
-                           setConfirmState({
-                             open: true,
-                             title: `Delete section "${formatName(section.name)}"?`,
-                             description: "This section and all nested fields will be permanently removed.",
-                             action: () => removeSection(section.id),
-                           })
-                         }}
-                       >
-                         <Trash2 className="h-4 w-4" />
-                       </Button>
-                     )}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setConfirmState({
+                            open: true,
+                            title: `Delete section "${formatName(section.name)}"?`,
+                            description: "This section and all nested fields will be permanently removed.",
+                            action: () => removeSection(section.id),
+                          })
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                     {depth > 0 && (
                       <Button
                         variant="ghost"
@@ -595,10 +595,9 @@ function FormSectionComponent({
                                     {formatName(field.name)}
                                   </Label>
                                   <span
-                                    className={`text-xs px-1.5 py-0.5 rounded bg-muted/60 font-mono font-semibold ${
-                                      fieldTypeTextClass[field.type?.toLowerCase() as keyof FieldTypeColor] ??
+                                    className={`text-xs px-1.5 py-0.5 rounded bg-muted/60 font-mono font-semibold ${fieldTypeTextClass[field.type?.toLowerCase() as keyof FieldTypeColor] ??
                                       "text-red-800"
-                                    }`}
+                                      }`}
                                   >
                                     {field.type}
                                   </span>
@@ -1166,7 +1165,7 @@ export function DynamicFormBuilder() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({config: jsonData, comments: commentsData}),
+        body: JSON.stringify({ config: jsonData, comments: commentsData }),
       })
 
       if (response.ok) {
@@ -1343,7 +1342,7 @@ export function DynamicFormBuilder() {
               variant="outline"
               className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
             >
-              <AnimatedThemeToggler />
+              <AnimatedThemeToggler className="" />
             </Button>
 
             <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
