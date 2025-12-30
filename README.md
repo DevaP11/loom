@@ -12,7 +12,7 @@
 - **Simple**: Loom makes all the changes to a JSON file, this file can be read and parsed by an system with relative ease
 - **Cloud Agnostic**: Setup in a way that these flags can be used for multiple clouds like AWS, Azure, etc...
 - **Self-Hostable**: Loom can be hosted as a docker container.
-- **Language Neutral**: The file can be stored in any of the supported internet file system or you can use the built in webhook to save data any where you want. Allowing you to integrate loom anywhere you want.
+- **Language Neutral**: The file can be stored in any of the supported internet file systems or you can use the built in webhook to save data any where you want. Allowing you to integrate loom anywhere you want.
 
 ## ✨ Roadmap Items
 
