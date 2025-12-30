@@ -2,7 +2,8 @@ Loom v1
 
 ## Table of Contents
 - [About](#-about)
-- [What's New](#-whats-new)
+- [Roadmap Items](#-roadmap-items)
+- [Self Hosting](#-self-hosting)
 
 ## 🚀 About
 
@@ -18,6 +19,6 @@ Loom v1
 - **Auth**: Social login support 
 - **RBAC**: Role based access control list
 
-## 📝 Self-Hosting
+## 📝 Self Hosting
 
 **Loom (v1)** can be deployed as docker container or by cloning the repository.
