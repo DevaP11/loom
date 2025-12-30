@@ -1,36 +1,23 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Loom v1
 
-## Getting Started
+## Table of Contents
+- [About](#-about)
+- [What's New](#-whats-new)
 
-First, run the development server:
+## 🚀 About
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+**Loom** is a Typescript + Go software designed to setup a simple plug-and-play feature flag management system. 
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Simple**: Loom makes all the changes to a JSON file, this file can be read and parsed by an system with relative ease
+- **Cloud Agnostic**: Setup in a way that these flags can be used for multiple clouds like AWS, Azure, etc...
+- **Self-Hostable**: Loom can be hosted as a docker container.
+- **Language Neutral**: The file can be stored in any of the supported internet file system or you can use the built in webhook to save data any where you want. Allowing you to integrate loom anywhere you want.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## ✨ Roadmap Items
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Auth**: Social login support 
+- **RBAC**: Role based access control list
 
-## Learn More
+## 📝 Self-Hosting
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Loom (v1)** can be deployed as docker container or by cloning the repository.
