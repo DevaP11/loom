@@ -1,5 +1,5 @@
 "use client"
-
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -531,7 +531,7 @@ function FormSectionComponent({
                       {isExpanded && <Minus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
                       {!isExpanded && <Plus className={`h-4 w-4 text-secondary transition-transform duration-200`} />}
                     </div>
-                    <h2 className="text-base font-semibold text-foreground">{formatName(section.name)}</h2>
+                    <h2 className="text-xl font-bold tracking-condensed text-foreground">{formatName(section.name)}</h2>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs font-medium px-2.5 py-1 rounded-full bg-muted text-muted-foreground">
@@ -591,7 +591,7 @@ function FormSectionComponent({
                             <div key={field.id} className="space-y-2 group/field">
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-1.5">
-                                  <Label htmlFor={field.id} className="text-sm font-medium text-foreground">
+                                  <Label htmlFor={field.id} className="text-base font-extrabold text-foreground">
                                     {formatName(field.name)}
                                   </Label>
                                   <span
@@ -1233,7 +1233,7 @@ export function DynamicFormBuilder() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background opacity-98 to-muted/20 p-4 md:p-8">
+    <div className="min-h-screen tracking-wide font-bold bg-gradient-to-br from-background via-background opacity-98 to-muted/20 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
         <SnackbarProvider />
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
@@ -1307,15 +1307,6 @@ export function DynamicFormBuilder() {
               </DialogContent>
             </Dialog>
 
-            <Button
-              variant="outline"
-              onClick={clearStorage}
-              className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all bg-transparent"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Reset
-            </Button>
-
             <Select value={selectedProject?.id || ""} onValueChange={handleProjectChange} disabled={isLoadingProject}>
               <SelectTrigger className="w-[200px] border-muted-foreground/20 focus:border-primary">
                 <SelectValue placeholder={isLoadingProject ? "Loading..." : "Select project..."} />
@@ -1338,6 +1329,22 @@ export function DynamicFormBuilder() {
                 )}
               </SelectContent>
             </Select>
+
+            <Button
+              variant="outline"
+              onClick={clearStorage}
+              className="hover:bg-destructive/10 hover:text-destructive hover:border-destructive/50 transition-all bg-transparent"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+
+
+            <Button
+              variant="outline"
+              className="hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all bg-transparent"
+            >
+              <AnimatedThemeToggler />
+            </Button>
 
             <Button onClick={handleSubmit} disabled={isSubmitting} className="bg-primary hover:bg-primary/90">
               <Send className="h-4 w-4 mr-2" />
@@ -1375,10 +1382,10 @@ export function DynamicFormBuilder() {
             </div>
           </div>
           {showPreview && (
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-8">
               <div>
                 <Label className="text-xs text-muted-foreground mb-2 block">config.json</Label>
-                <pre className="text-xs bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 tracking-widest font-mono">
+                <pre className="text-sm bg-muted/50 p-4 rounded-lg overflow-auto max-h-60 tracking-widest font-mono">
                   {JSON.stringify(buildTrueJson(), null, 2)}
                 </pre>
               </div>
