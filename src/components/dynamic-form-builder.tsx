@@ -1036,6 +1036,7 @@ export function DynamicFormBuilder() {
       // Save to localStorage for this project
       localStorage.setItem(getStorageKeyConfig(project.id), JSON.stringify(config))
       localStorage.setItem(getStorageKeyComments(project.id), JSON.stringify(comments))
+      localStorage.setItem("hash", data.hash)
     } catch (error) {
       console.error("Error fetching project config:", error)
       enqueueSnackbar(`Failed to load config for ${project.name}. Make sure the server is running.`)
@@ -1157,6 +1158,7 @@ export function DynamicFormBuilder() {
     setIsSubmitting(true)
     const jsonData = buildTrueJson()
     const commentsData = buildCommentsJson()
+    const hash = localStorage.getItem("hash")
 
     try {
       const uploadUrl = selectedProject.uploadEndpoint
@@ -1165,7 +1167,7 @@ export function DynamicFormBuilder() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ config: jsonData, comments: commentsData }),
+        body: JSON.stringify({ config: jsonData, comments: commentsData, hash }),
       })
 
       if (response.ok) {
