@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 4144",
-    "build": "next build",
-    "start": "next start",
+    "dev": "bun --bun next dev -p 4144",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start -p 4144",
     "lint": "eslint ."
   },
   "dependencies": {

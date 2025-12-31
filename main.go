@@ -1,8 +1,6 @@
 package main
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,18 +17,5 @@ func main() {
 		})
 	}
 
-	// Serve static files and handle SPA routing
-	router.NoRoute(func(c *gin.Context) {
-
-		// Check if file exists
-		if _, err := http.Dir("./out").Open(c.Request.URL.Path); err == nil {
-			c.FileFromFS(c.Request.URL.Path, http.Dir("./out"))
-			return
-		}
-
-		// Fallback to index.html for client-side routes
-		c.File("./out/index.html")
-	})
-
-	router.Run(":3000")
+	router.Run(":8080")
 }
