@@ -30,7 +30,11 @@ RUN bun install --frozen-lockfile
 
 # Copy Next.js source code (excluding node_modules and api directory)
 COPY next.config.* ./
+COPY components.json* ./
+COPY jsconfig.json* ./
+COPY eslint.config.mjs* ./
 COPY tsconfig.json* ./
+COPY postcss.config.mjs* ./
 COPY public ./public
 COPY src ./src
 
@@ -38,7 +42,7 @@ COPY src ./src
 RUN bun run build
 
 # Stage 3: Production runtime
-FROM oven/bun:1.3.1-alpine AS runner
+FROM oven/bun:1.3.5-alpine AS runner
 
 WORKDIR /app
 
@@ -74,8 +78,8 @@ RUN echo '#!/bin/sh' > /app/start.sh && \
     echo 'exit $?' >> /app/start.sh && \
     chmod +x /app/start.sh
 
-# Expose ports (3000 for Next.js, 8080 for Go API)
-EXPOSE 3000 8080
+# Expose ports (4144 for Next.js, 8080 for Go API)
+EXPOSE 4144 8080
 
 # Set environment to production
 ENV NODE_ENV=production
