@@ -22,3 +22,19 @@
 ## 📝 Self Hosting
 
 **Loom (v1)** can be deployed as docker container or by cloning the repository.
+
+Create this docker-compose.yml file in your local or add this service to your existing compose file. 
+
+```
+version: "3.9"
+services:
+  loom:
+    build:
+      context: https://github.com/DevaP11/loom.git 
+      dockerfile: ./Dockerfile
+    image: loom:latest
+    ports:
+      - "4144:4144"
+```
+
+Run this compose with `docker-compose up --force-recreate --build -d`. Visit `http://localhost:4144/` to visit loom.
