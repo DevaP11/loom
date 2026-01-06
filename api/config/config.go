@@ -1,9 +1,12 @@
 package config
 
-import "fmt"
+import (
+	"fmt"
 
-func HelloWorld(amount float64) string {
-	result := "US"
-	fmt.Printf("%.2f converted to USD is %.2f\n", amount, result)
-	return "Hello world"
+	"loom.app/models"
+)
+
+func CreateProjectItem(project models.CreateProject) string {
+	fmt.Printf("Project name is %s \n & Project Get Config Url is %s \n", project.Name, project.GetConfigUrl)
+	return "Success"
 }
