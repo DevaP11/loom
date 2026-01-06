@@ -13,9 +13,9 @@ func main() {
 	api := router.Group("/api")
 	{
 		api.GET("/config", func(c *gin.Context) {
-			config.HelloWorld(200)
+			apiResponse := config.HelloWorld(200)
 			c.JSON(200, gin.H{
-				"message": "Hello from the Go API!",
+				"message": apiResponse,
 			})
 		})
 	}
