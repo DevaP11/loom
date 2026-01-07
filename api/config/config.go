@@ -9,6 +9,8 @@ import (
 )
 
 func CreateProjectItem(project models.CreateProject) string {
+	fmt.Printf("Project name is %s \n & Project Get Config Url is %s \n", project.Name, project.GetConfigUrl)
+
 	db, err := badger.Open(badger.DefaultOptions("./badger"))
 	if err != nil {
 		log.Fatal(err)
@@ -17,7 +19,5 @@ func CreateProjectItem(project models.CreateProject) string {
 	defer db.Close()
 
 	fmt.Printf("Badger Database Loaded\n")
-
-	fmt.Printf("Project name is %s \n & Project Get Config Url is %s \n", project.Name, project.GetConfigUrl)
 	return "Success"
 }
