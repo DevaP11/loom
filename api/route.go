@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"loom.app/config"
@@ -24,7 +25,21 @@ func main() {
 				})
 				return
 			}
+
 			apiResponse := config.CreateProjectItem(body)
+			c.JSON(200, gin.H{
+				"message": apiResponse,
+			})
+		})
+
+		api.GET("/project", func(c *gin.Context) {
+
+			id, err := strconv.Atoi(c.Query("id"))
+			if err == nil {
+				log.Fatal(err)
+			}
+
+			apiResponse := config.GetProjectItem(id)
 			c.JSON(200, gin.H{
 				"message": apiResponse,
 			})
