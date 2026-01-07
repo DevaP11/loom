@@ -1,17 +1,17 @@
 import "./globals.css";
 // app/layout.tsx (App Router)
 
-import { Poiret_One } from 'next/font/google';
+import { Geist } from 'next/font/google';
 
-const poiret = Poiret_One({
+const font = Geist({
   subsets: ['latin', 'cyrillic'],
-  weight: '400',
+  weight: '100',
   display: 'swap',
 });
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={poiret.className}>
+    <html lang="en" className={font.className}>
       <body>{children}</body>
     </html>
   );
