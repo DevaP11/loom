@@ -10,7 +10,7 @@ import (
 	"loom.app/models"
 )
 
-func CreateProjectItem(project models.CreateProject) string {
+func CreateProjectItem(project models.Project) string {
 	fmt.Printf("Project name is %s \n & Project Get Config Url is %s \n", project.Name, project.GetConfigUrl)
 
 	db, err := badger.Open(badger.DefaultOptions("./badger"))
@@ -20,7 +20,7 @@ func CreateProjectItem(project models.CreateProject) string {
 
 	defer db.Close() // closes the db connection after the function execution is complete
 
-	projectEntry := models.CreateProject{
+	projectEntry := models.Project{
 		Name:            project.Name,
 		GetConfigUrl:    project.GetConfigUrl,
 		UpdateConfigUrl: project.UpdateConfigUrl,
@@ -49,7 +49,7 @@ func CreateProjectItem(project models.CreateProject) string {
 	return "Success"
 }
 
-func GetProjectItem(id int) models.CreateProject {
+func GetProjectItem(id int) models.Project {
 	db, err := badger.Open(badger.DefaultOptions("./badger"))
 	if err != nil {
 		log.Fatal(err)
@@ -57,7 +57,7 @@ func GetProjectItem(id int) models.CreateProject {
 
 	defer db.Close() // closes the db connection after the function execution is complete
 
-	var value models.CreateProject
+	var value models.Project
 
 	err = db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte("id"))

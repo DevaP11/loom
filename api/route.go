@@ -16,7 +16,7 @@ func main() {
 	api := router.Group("/api")
 	{
 		api.POST("/project", func(c *gin.Context) {
-			var body models.CreateProject
+			var body models.Project
 
 			if err := c.ShouldBindJSON(&body); err != nil {
 				log.Printf("Error: %v", err)
