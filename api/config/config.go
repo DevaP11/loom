@@ -16,7 +16,7 @@ func CreateProjectItem(project models.CreateProject) string {
 		log.Fatal(err)
 	}
 
-	defer db.Close()
+	defer db.Close() // closes the db connection after the function execution is complete
 
 	fmt.Printf("Badger Database Loaded\n")
 	return "Success"
