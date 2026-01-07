@@ -5,8 +5,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"loom.app/config"
 	"loom.app/models"
+	"loom.app/project"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 				return
 			}
 
-			apiResponse := config.CreateProjectItem(body)
+			apiResponse := project.CreateProjectItem(body)
 			c.JSON(200, gin.H{
 				"message": apiResponse,
 			})
@@ -39,7 +39,7 @@ func main() {
 				log.Fatal(err)
 			}
 
-			apiResponse := config.GetProjectItem(id)
+			apiResponse := project.GetProjectItem(id)
 			c.JSON(200, gin.H{
 				"message": apiResponse,
 			})
