@@ -6,16 +6,16 @@ FROM golang:1.25-alpine AS go-builder
 WORKDIR /go-app
 
 # Copy Go modules files
-COPY go.mod go.sum* ./
+COPY api/go.mod api/go.sum* ./
 
 # Download dependencies
 RUN go mod download
 
 # Copy Go source code
-COPY api/ ./api/
+COPY api/ ./
 
 # Build Go binary
-RUN CGO_ENABLED=0 GOOS=linux go build -o /go-api ./api
+RUN CGO_ENABLED=0 GOOS=linux go build -o /go-api .
 
 # Stage 2: Build Next.js with Bun
 FROM oven/bun:1-alpine AS bun-builder
