@@ -37,4 +37,4 @@ services:
       - "4144:4144"
 ```
 
-Run this compose with `docker-compose up --force-recreate --build -d`. Visit `http://localhost:4144/` to visit loom.
+Run this compose with `docker compose up --force-recreate --build -d`. Visit `http://localhost:4144/` to visit loom.
