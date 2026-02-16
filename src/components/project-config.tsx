@@ -119,7 +119,6 @@ export function ProjectConfigPage() {
               <p className="text-sm text-muted-foreground mt-0.5">Manage your projects and API endpoints</p>
             </div>
           </div>
-
           <Dialog open={isAddOpen} onOpenChange={(open) => (open ? setIsAddOpen(true) : closeDialog())}>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
@@ -250,6 +249,13 @@ export function ProjectConfigPage() {
             ))}
           </div>
         )}
+
+        {projects.length !== 0 && <div className="py-8 flex justify-center">
+          <Button onClick={() => setIsAddOpen(true)} variant="outline" className="bg-primary/90 text-white p-2 hover:bg-primary/80 hover:text-white mb-4">
+            <Plus className="h-4 w-4 mr-2" />
+            Add Project
+          </Button>
+        </div>}
       </div>
     </div>
   )
