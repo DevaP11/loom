@@ -14,7 +14,7 @@ export interface ProjectConfig {
   name: string
   getEndpoint: string
   uploadEndpoint: string
-  apiKey: string
+  apiKey?: string
 }
 
 const PROJECTS_STORAGE_KEY = "dynamic-form-projects"
