@@ -67,6 +67,7 @@ export function ProjectConfigPage() {
               name: formData.name,
               getEndpoint: formData.getEndpoint,
               uploadEndpoint: formData.uploadEndpoint,
+              apiKey: formData.apiKey,
             }
           : p,
       )
@@ -76,6 +77,7 @@ export function ProjectConfigPage() {
         name: formData.name,
         getEndpoint: formData.getEndpoint,
         uploadEndpoint: formData.uploadEndpoint,
+        apiKey: formData.apiKey,
       }
       updatedProjects = [...projects, newProject]
     }
