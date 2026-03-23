@@ -44,6 +44,7 @@ export function ProjectConfigPage() {
     name: "",
     getEndpoint: "",
     uploadEndpoint: "",
+    apiKey: "",
   })
 
   useEffect(() => {
@@ -169,6 +170,17 @@ export function ProjectConfigPage() {
                     className="border-muted-foreground/20 focus:border-primary font-mono text-sm"
                   />
                   <p className="text-xs text-muted-foreground">URL to submit configuration to</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="uploadEndpoint">Add Api Key</Label>
+                  <Input
+                    id="apiKey"
+                    value={formData.apiKey}
+                    onChange={(e) => setFormData({ ...formData, apiKey: e.target.value })}
+                    placeholder="random string"
+                    className="border-muted-foreground/20 focus:border-primary font-mono text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">Api Key to submit configuration with</p>
                 </div>
               </div>
               <DialogFooter>
