@@ -82,7 +82,7 @@ export function ProjectConfigPage() {
 
     setProjects(updatedProjects)
     saveProjects(updatedProjects)
-    setFormData({ name: "", getEndpoint: "", uploadEndpoint: "" })
+    setFormData({ name: "", getEndpoint: "", uploadEndpoint: "", apiKey: "" })
     setIsAddOpen(false)
     setEditingProject(null)
   }
@@ -99,6 +99,7 @@ export function ProjectConfigPage() {
       name: project.name,
       getEndpoint: project.getEndpoint,
       uploadEndpoint: project.uploadEndpoint,
+      apiKey: project.apiKey,
     })
     setIsAddOpen(true)
   }
@@ -106,7 +107,7 @@ export function ProjectConfigPage() {
   const closeDialog = () => {
     setIsAddOpen(false)
     setEditingProject(null)
-    setFormData({ name: "", getEndpoint: "", uploadEndpoint: "" })
+    setFormData({ name: "", getEndpoint: "", uploadEndpoint: "", apiKey: "" })
   }
 
   return (
