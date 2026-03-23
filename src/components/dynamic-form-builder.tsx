@@ -1166,6 +1166,7 @@ export function DynamicFormBuilder() {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
+          "X-Api-Key": selectedProject.apiKey
         },
         body: JSON.stringify({ config: jsonData, comments: commentsData, baseVersion }),
       })

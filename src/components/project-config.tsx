@@ -236,6 +236,12 @@ export function ProjectConfigPage() {
                       {project.uploadEndpoint}
                     </code>
                   </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-xs font-medium text-muted-foreground">Api Key</span>
+                    <code className="text-sm bg-muted px-3 py-1.5 rounded font-mono break-all">
+                      {project.apiKey}
+                    </code>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex flex-row justify-end">
                   <Button onClick={() => {
