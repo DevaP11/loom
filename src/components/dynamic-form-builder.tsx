@@ -1008,7 +1008,11 @@ export function DynamicFormBuilder() {
   const fetchProjectConfig = async (project: ProjectConfig) => {
     setIsLoadingProject(true)
     try {
-      const response = await fetch(project.getEndpoint)
+      const response = await fetch(project.getEndpoint, {
+        headers: {
+          "X-Api-Key": project.apiKey
+        }
+      })
       if (!response.ok) {
         throw new Error(`Failed to fetch config for ${project.name}`)
       }
