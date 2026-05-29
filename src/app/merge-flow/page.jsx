@@ -1,7 +1,7 @@
 'use client'
 import React, { useState, useRef } from 'react';
 import {
-  Layers, UploadCloud, ShieldCheck, Download, Plus, FileJson,
+  Layers, UploadCloud, ShieldCheck, Send, Plus, FileJson,
   PlusCircle, HardDrive, Edit3, Sparkles, Copy, XCircle, 
   CheckCircle, GitMerge, Info, GitPullRequest, X, ArrowRight
 } from 'lucide-react';
@@ -231,11 +231,8 @@ export default function JsonNexus() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={() => fileInputRef.current?.click()} className="hidden md:flex items-center gap-2 px-3 py-1.5 text-xs font-medium bg-[#1A0C33] hover:bg-[#EA7FD6] hover:text-[#2B1354] text-[#9AB5E7] rounded-md transition-all border border-[#9AB5E7]/20">
-            <UploadCloud className="w-4 h-4" /> Upload JSON
-          </button>
           <button className="flex items-center gap-2 px-4 py-1.5 text-xs font-bold bg-[#EA7FD6] hover:bg-[#FFFFFF] text-[#2B1354] rounded-md transition-all shadow-lg shadow-[#EA7FD6]/20">
-            <Download className="w-4 h-4" /> Export Result
+            Submit<Send className="w-4 h-4" /> 
           </button>
         </div>
       </header>
