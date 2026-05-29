@@ -5,6 +5,6 @@ const nextConfig = {
   // basePath: '',
   // reactStrictMode: true,
   // trailingSlash: true,
-};
+}
 
-export default nextConfig;
+export default nextConfig

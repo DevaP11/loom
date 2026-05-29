@@ -1,9 +1,9 @@
-"use client";
-import { useCallback, useEffect, useRef, useState } from "react"
-import { Moon, Sun } from "lucide-react"
-import { flushSync } from "react-dom"
+'use client'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Moon, Sun } from 'lucide-react'
+import { flushSync } from 'react-dom'
 
-import { cn } from "@/lib/utils"
+import { cn } from '@/lib/utils'
 
 export const AnimatedThemeToggler = ({
   className,
@@ -15,7 +15,7 @@ export const AnimatedThemeToggler = ({
 
   useEffect(() => {
     const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains("dark"))
+      setIsDark(document.documentElement.classList.contains('dark'))
     }
 
     updateTheme()
@@ -23,10 +23,10 @@ export const AnimatedThemeToggler = ({
     const observer = new MutationObserver(updateTheme)
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ['class']
     })
 
-    return () => observer.disconnect();
+    return () => observer.disconnect()
   }, [])
 
   const toggleTheme = useCallback(async () => {
@@ -36,8 +36,8 @@ export const AnimatedThemeToggler = ({
       flushSync(() => {
         const newTheme = !isDark
         setIsDark(newTheme)
-        document.documentElement.classList.toggle("dark")
-        localStorage.setItem("theme", newTheme ? "dark" : "light")
+        document.documentElement.classList.toggle('dark')
+        localStorage.setItem('theme', newTheme ? 'dark' : 'light')
       })
     }).ready
 
@@ -53,12 +53,12 @@ export const AnimatedThemeToggler = ({
     document.documentElement.animate({
       clipPath: [
         `circle(0px at ${x}px ${y}px)`,
-        `circle(${maxRadius}px at ${x}px ${y}px)`,
-      ],
+        `circle(${maxRadius}px at ${x}px ${y}px)`
+      ]
     }, {
       duration,
-      easing: "ease-in-out",
-      pseudoElement: "::view-transition-new(root)",
+      easing: 'ease-in-out',
+      pseudoElement: '::view-transition-new(root)'
     })
   }, [isDark, duration])
 
@@ -67,9 +67,10 @@ export const AnimatedThemeToggler = ({
       ref={buttonRef}
       onClick={toggleTheme}
       className={cn(className)}
-      {...props}>
+      {...props}
+    >
       {isDark ? <Sun /> : <Moon />}
-      <span className="sr-only">Toggle theme</span>
+      <span className='sr-only'>Toggle theme</span>
     </button>
-  );
+  )
 }
