@@ -175,7 +175,7 @@ export default function JsonNexus() {
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #EA7FD6; }
         .light-scrollbar::-webkit-scrollbar-thumb { background: #9AB5E7; }
         .light-scrollbar::-webkit-scrollbar-thumb:hover { background: #2B1354; }
-        .editor-font { font-family: 'JetBrains Mono', monospace; font-size: 15px; line-height: 1.7; }
+        .editor-font { font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.7; }
       `}} />
 
       {/* TARGET SOURCE MODAL */}
@@ -220,7 +220,7 @@ export default function JsonNexus() {
               <Layers className="text-[#2B1354] w-5 h-5" />
             </div>
             <h1 className="text-lg font-bold tracking-tight text-white hidden sm:block" style={{ fontFamily: 'Satoshi' }}>
-              JSON<span className="text-[#EA7FD6]">Nexus</span>
+              <span className="text-[#EA7FD6]">Loom</span>
             </h1>
           </div>
           <div className="h-8 w-px bg-[#9AB5E7]/20 mx-2 hidden sm:block"></div>
@@ -257,8 +257,7 @@ export default function JsonNexus() {
               {Object.keys(fileData).map((file) => {
                 // Apply specific styling logic based on the image reference
                 const isActive = activeFile === file;
-                const isBlueBordered = file === 'local_overrides.json'; // Hardcoding the blue border style for exact image match
-                
+
                 return (
                   <div 
                     key={file}
@@ -266,12 +265,10 @@ export default function JsonNexus() {
                     className={`group flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all ${
                       isActive 
                         ? 'bg-white shadow-sm border border-transparent' 
-                        : isBlueBordered 
-                          ? 'bg-[#E5E7EB] border-2 border-[#3B82F6]'
-                          : 'hover:bg-white/60 border border-transparent hover:border-[#9AB5E7]/20 text-[#2B1354]/70'
+                        : 'hover:bg-white/60 border border-transparent hover:border-[#9AB5E7]/20 text-[#2B1354]/70'
                     }`}
                   >
-                    <span className={`text-[15px] ${isActive || isBlueBordered ? 'font-medium text-[#2B1354]' : ''}`}>
+                    <span className={`text-[13px] ${isActive ? 'font-semibold text-[#3A588E]' : ''}`}>
                       {file}
                     </span>
                   </div>
@@ -345,7 +342,7 @@ export default function JsonNexus() {
         {/* RIGHT SIDEBAR - MERGE EDITOR */}
         <aside className={`w-full lg:w-[400px] border-l border-[#9AB5E7]/20 flex flex-col bg-[#F3F4F6] shrink-0 transition-all ${activeTab === 'merge' ? 'flex' : 'hidden xl:flex'}`}>
           <div className="h-12 border-b border-[#9AB5E7]/20 flex items-center justify-between px-4 bg-white/60">
-            <h3 className="text-xs font-bold uppercase tracking-widest text-[#2B1354]">Merge Editor</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wide text-[#2B1354]">Merge Editor</h3>
             {isComparing && (
               <div className="flex gap-1.5">
                 <span className="flex items-center text-[11px] bg-[#EA7FD6]/10 text-[#EA7FD6] font-medium px-2 py-0.5 rounded border border-[#EA7FD6]/20">
@@ -428,6 +425,18 @@ export default function JsonNexus() {
           </div>
         </aside>
       </main>
+
+      {/** FOOTER */}
+      <footer className="h-6 shrink-0 border-t border-[#9AB5E7]/10 bg-[#2B1354] flex items-center justify-between px-3 text-[10px] text-[#9AB5E7] font-mono">
+        <span>UTF-8 • JSON • Active</span>
+        <div className="flex items-center gap-4">
+          <span>Mem: {new Blob([jsonContent]).size} Bytes</span>
+          <span className="flex items-center gap-1 text-[#EA7FD6]">
+            <span className="w-1.5 h-1.5 bg-[#EA7FD6] rounded-full animate-pulse"></span>
+            Connected
+          </span>
+        </div>
+      </footer>
     </div>
   );
 }
